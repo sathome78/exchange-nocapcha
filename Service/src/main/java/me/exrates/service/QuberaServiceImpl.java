@@ -182,10 +182,14 @@ public class QuberaServiceImpl implements QuberaService {
     @Override
     public AccountQuberaResponseDto createAccount(AccountCreateDto accountCreateDto) {
         User user = userService.findByEmail(accountCreateDto.getEmail());
+        if (quberaDao.existAccountByUserEmailAndCurrencyName(accountCreateDto.getEmail(),
+                accountCreateDto.getCurrencyCode())) {
+            QuberaUserData quberaUserData = quberaDao.getUserDataByUserId(user.getId());
+            return new AccountQuberaResponseDto(quberaUserData.getAccountNumber(), quberaUserData.getIban());
+        }
+
         Currency currency = currencyService.findByName(accountCreateDto.getCurrencyCode());
-
         QuberaUserData userData = QuberaUserData.of(accountCreateDto, user.getId(), currency.getId());
-
         String account = userData.buildAccountString();
         if (account.length() >= thresholdLength) {
             String error = "Count chars of request is over limit {}" + account.length();
@@ -201,7 +205,7 @@ public class QuberaServiceImpl implements QuberaService {
         boolean saveUserDetails = quberaDao.saveUserDetails(userData);
 
         if (saveUserDetails) {
-            return responseDto;
+            return new AccountQuberaResponseDto(userData.getAccountNumber(), userData.getIban());
         } else {
             throw new NgDashboardException("Error while saving response",
                     Constants.ErrorApi.QUBERA_SAVE_ACCOUNT_RESPONSE_ERROR);

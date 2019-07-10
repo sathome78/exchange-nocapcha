@@ -51,8 +51,8 @@ public class QuberaDaoImpl implements QuberaDao {
     @Override
     public boolean saveUserDetails(QuberaUserData userData) {
         String sql = "INSERT INTO QUBERA_USER_DETAILS (user_id, currency_id, account_number, iban, address, city, first_name, last_name, country_code) "
-                + " VALUES (user_id = :user_id, currency_id = :currency_id, account_number = :account_number, iban = :iban, address = :address, city = :city, " +
-                "first_name = :first_name, last_name = :last_name, country_code = :country_code ) "
+                + " VALUE (:user_id, :currency_id, :account_number,:iban, :address, :city, " +
+                ":first_name, :last_name, :country_code ) "
                 + " ON DUPLICATE KEY UPDATE account_number = :account_number, iban = :iban";
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("user_id", userData.getUserId());
@@ -139,9 +139,9 @@ public class QuberaDaoImpl implements QuberaDao {
     public boolean logResponse(QuberaRequestDto requestDto) {
         String sql = "INSERT INTO QUBERA_RESPONSE_LOG (paymentId , messageId, accountIBAN, accountNumber, processingTime,"
                 + " state, currency, paymentAmount, transferType, rejectionReason) "
-                + " VALUES (paymentId =:paymentId, messageId = :messageId, accountIBAN = :accountIBAN, accountNumber = :accountNumber,"
-                + " processingTime = :processingTime, state = :state, currency = :currency, paymentAmount = :paymentAmount,"
-                + " transferType = :transferType, rejectionReason = :rejectionReason)";
+                + " VALUES (:paymentId, :messageId, :accountIBAN, :accountNumber,"
+                + " :processingTime, :state, :currency, :paymentAmount,"
+                + " :transferType, :rejectionReason)";
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("paymentId", requestDto.getPaymentId());
         params.addValue("messageId", requestDto.getMessageId());
