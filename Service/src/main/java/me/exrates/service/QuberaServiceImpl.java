@@ -94,11 +94,13 @@ public class QuberaServiceImpl implements QuberaService {
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
-
+        logger.info(String.format("qubera refill email %s, amount %s ", request.getUserEmail(),
+                request.getAmount().toPlainString()));
         PaymentRequestDto paymentRequestDto = new PaymentRequestDto(request.getAmount(), request.getCurrencyName());
-
         //create request to make payment to master account
         ResponsePaymentDto paymentToMaster = createPaymentToMaster(request.getUserEmail(), paymentRequestDto);
+        logger.info(String.format("Success create payment, email %s, paymentId %s, amount %s", request.getUserEmail(),
+                paymentToMaster.getPaymentId().toString(), paymentToMaster.getTransactionAmount().toPlainString()));
 
         Map<String, String> details = quberaDao.getUserDetailsForCurrency(request.getUserId(), request.getCurrencyId());
         Map<String, String> refillParams = Maps.newHashMap();
@@ -111,6 +113,8 @@ public class QuberaServiceImpl implements QuberaService {
         refillParams.put("paymentId", paymentToMaster.getPaymentId().toString());
 
         if (confirmPaymentToMaster(paymentToMaster.getPaymentId())) {
+            logger.info(String.format("Confirm payment, paymentId %s, amount %s", paymentToMaster.getPaymentId(),
+                    paymentToMaster.getTransactionAmount().toPlainString() ));
             try {
                 processPayment(refillParams);
             } catch (RefillRequestAppropriateNotFoundException e) {
@@ -150,9 +154,8 @@ public class QuberaServiceImpl implements QuberaService {
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
-
         QuberaUserData quberaUserData = quberaDao.getUserDataByUserId(withdrawMerchantOperationDto.getUserId());
-
+        logger.info("withdraw qubera service email " + quberaUserData.getEmail() + " , amount " + withdrawMerchantOperationDto.getAmount());
         QuberaPaymentToMasterDto paymentToMasterDto = QuberaPaymentToMasterDto.builder()
                 .accountNumber(quberaUserData.getAccountNumber())
                 .beneficiaryAccountNumber(masterAccount)
@@ -162,7 +165,10 @@ public class QuberaServiceImpl implements QuberaService {
                 .build();
 
         ResponsePaymentDto responsePaymentDto = kycHttpClient.createPaymentInternal(paymentToMasterDto, false);
+        logger.info("withdraw create payment internal success, amount - " + responsePaymentDto.getTransactionAmount().toPlainString()
+                + ", transaction " + responsePaymentDto.getTransactionCurrencyCode());
         if (!kycHttpClient.confirmInternalPayment(responsePaymentDto.getPaymentId(), true)) {
+            logger.info("Fail confirm payment " + responsePaymentDto.getTransactionCurrencyCode());
             throw new MerchantException("Payment not confirmed");
         }
         return Collections.emptyMap();
@@ -181,6 +187,7 @@ public class QuberaServiceImpl implements QuberaService {
 
     @Override
     public AccountQuberaResponseDto createAccount(AccountCreateDto accountCreateDto) {
+        logger.info("createAccount(), {}" + accountCreateDto.getEmail());
         User user = userService.findByEmail(accountCreateDto.getEmail());
         if (quberaDao.existAccountByUserEmailAndCurrencyName(accountCreateDto.getEmail(),
                 accountCreateDto.getCurrencyCode())) {
@@ -199,6 +206,8 @@ public class QuberaServiceImpl implements QuberaService {
 
         AccountQuberaRequestDto requestDto = new AccountQuberaRequestDto(account, accountCreateDto.getCurrencyCode(), poolId);
         AccountQuberaResponseDto responseDto = kycHttpClient.createAccount(requestDto);
+        logger.info("Response from create account service success, iban {} + " + responseDto.getIban() + ", number "
+                + responseDto.getAccountNumber());
         userData.setIban(responseDto.getIban());
         userData.setAccountNumber(responseDto.getAccountNumber());
 
@@ -207,6 +216,7 @@ public class QuberaServiceImpl implements QuberaService {
         if (saveUserDetails) {
             return new AccountQuberaResponseDto(userData.getAccountNumber(), userData.getIban());
         } else {
+            logger.error("Error saving qubera user details " + accountCreateDto.getEmail());
             throw new NgDashboardException("Error while saving response",
                     Constants.ErrorApi.QUBERA_SAVE_ACCOUNT_RESPONSE_ERROR);
         }
