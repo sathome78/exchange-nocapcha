@@ -13,21 +13,11 @@ import javax.validation.constraints.NotNull;
 @AllArgsConstructor
 public class AccountCreateDto {
 
-    @NotNull
     private String firstName;
-
-    @NotNull
     private String lastName;
-
-    @NotNull
     private String address;
-
-    @NotNull
     private String city;
-
-    @NotNull
     private String countryCode;
-
     private String email;
 
     @NotNull

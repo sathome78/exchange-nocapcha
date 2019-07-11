@@ -2,21 +2,14 @@ package me.exrates.controller.merchants;
 
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.CreditsOperation;
-import me.exrates.model.Email;
 import me.exrates.model.Payment;
-import me.exrates.model.User;
 import me.exrates.model.dto.AccountCreateDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestParamsDto;
-import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.qubera.AccountInfoDto;
-import me.exrates.model.dto.qubera.PaymentRequestDto;
 import me.exrates.model.dto.qubera.QuberaPaymentInfoDto;
 import me.exrates.model.dto.qubera.QuberaRequestDto;
-import me.exrates.model.dto.qubera.ResponsePaymentDto;
-import me.exrates.model.enums.UserNotificationType;
-import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngModel.response.ResponseModel;
@@ -35,14 +28,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 import java.util.Locale;
 import java.util.Map;
 
@@ -70,7 +62,7 @@ public class QuberaMerchantController {
         logger.info("Response: " + requestDto.getParams());
         quberaService.logResponse(requestDto);
         try {
-           quberaService.sendNotification(requestDto);
+            quberaService.sendNotification(requestDto);
             return ResponseEntity.ok("Thank you");
         } catch (RefillRequestAlreadyAcceptedException e) {
             return ResponseEntity.ok("Thank you");
@@ -96,9 +88,8 @@ public class QuberaMerchantController {
 
 
     @PostMapping(value = API_PRIVATE_V2 + "/merchants/qubera/account/create", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseModel<AccountQuberaResponseDto> createBankAccount(@RequestBody @Valid AccountCreateDto accountCreateDto) {
-        accountCreateDto.setEmail(getPrincipalEmail());
-        AccountQuberaResponseDto result = quberaService.createAccount(accountCreateDto);
+    public ResponseModel<AccountQuberaResponseDto> createBankAccount() {
+        AccountQuberaResponseDto result = quberaService.createAccount(getPrincipalEmail());
         return new ResponseModel<>(result);
     }
 
@@ -116,6 +107,12 @@ public class QuberaMerchantController {
     @GetMapping(value = API_PRIVATE_V2 + "/merchants/qubera/account/info")
     public ResponseModel<AccountInfoDto> getUserAccountBalanceInfo() {
         AccountInfoDto result = quberaService.getInfoAccount(getPrincipalEmail());
+        return new ResponseModel<>(result);
+    }
+
+    @GetMapping(value = API_PRIVATE_V2 + "/merchants/qubera/verification_status")
+    public ResponseModel<String> getUserVerificationStatus() {
+        String result = quberaService.getUserVerificationStatus(getPrincipalEmail());
         return new ResponseModel<>(result);
     }
 
