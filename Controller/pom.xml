@@ -138,6 +138,9 @@
         </profile>
         <profile>
             <id>dedik</id>
+            <properties>
+                <maven.test.skip>true</maven.test.skip>
+            </properties>
             <build>
                 <finalName>ROOT</finalName>
                 <plugins>
