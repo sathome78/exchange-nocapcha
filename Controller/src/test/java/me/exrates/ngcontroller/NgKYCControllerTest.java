@@ -10,6 +10,7 @@ import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
 import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
 import me.exrates.service.KYCService;
 import me.exrates.service.KYCSettingsService;
+import me.exrates.service.QuberaService;
 import me.exrates.service.UserService;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -51,6 +52,8 @@ public class NgKYCControllerTest extends AngularApiCommonTest {
     private KYCService kycService;
     @Mock
     private KYCSettingsService kycSettingsService;
+    @Mock
+    private QuberaService quberaService;
 
     @InjectMocks
     private NgKYCController ngKYCController;
@@ -105,14 +108,14 @@ public class NgKYCControllerTest extends AngularApiCommonTest {
         dto.setMissingOptionalDocs(missingOptionalDocs);
         dto.setAnalysisResults(Collections.EMPTY_LIST);
 
-        doNothing().when(kycService).processingCallBack(anyString(), anyObject());
+        doNothing().when(quberaService).processingCallBack(anyString(), anyObject());
 
         mockMvc.perform(MockMvcRequestBuilders.post(PUBLIC_KYC + "/webhook/{referenceId}", "15")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk());
 
-        verify(kycService, times(1)).processingCallBack(anyString(), anyObject());
+        verify(quberaService, times(1)).processingCallBack(anyString(), anyObject());
     }
 
     @Test
