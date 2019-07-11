@@ -7,23 +7,10 @@
 @apiUse ApiJSON
 
 @apiExample {curl} Example usage:
- curl -X POST \
-      http://localhost:8080/api/private/v2/merchants/qubera/account/create \
-      -H 'Content-Type: application/json' \
-      -H 'exrates-rest-token: $token' \
-      -d '{
-	    "firstName":"firstName",
-	    "lastName":"lastName",
-	    "address":"Flat 6, 28 street",
-	    "countryCode":"UK",
-	    "city":"London"
-}'
-
-@apiParam {String} firstName - first name
-@apiParam {String} lastName - last name
-@apiParam {String} city - city
-@apiParam {String} address - Address line (without country name/code, postal code, city), example: Flat 6, 28 street
-@apiParam {String} countryCode - country code
+curl -X POST \
+  http://localhost:8080/api/private/v2/merchants/qubera/account/create \
+  -H 'Content-Type: application/json' \
+  -H 'exrates-rest-token: $token'
 
 @apiSuccess {Object} data Data
 @apiSuccess {String} data.iban
@@ -108,6 +95,71 @@ HTTP/1.1 400 OK
                 "currencyCode": "EUR"
               }
       }
+
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 OK
+{
+    "url": "url",
+    "cause": "cause",
+    "detail": "detail",
+    "title": "title",
+    "uuid": "uuid",
+    "code": 1200
+}
+###
+
+###
+@api {get} api/private/v2/merchants/qubera/account/info Get info for payment
+@apiName  Get info for payment
+@apiVersion 0.0.1
+@apiGroup Qubera
+@apiUse Exrates
+
+@apiExample {curl} Example usage:
+ curl -X GET \
+      http://localhost:8080/api/private/v2/merchants/qubera/account/info \
+
+      -H 'exrates-rest-token: $token' \
+
+@apiSuccessExample {json} Success-Response:
+{
+    "data": {
+        "iban": "LT551234500002717981",
+        "accountNumber": "410052717981",
+        "companyDetails": null
+    },
+    "error": null
+}
+
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 OK
+{
+    "url": "url",
+    "cause": "cause",
+    "detail": "detail",
+    "title": "title",
+    "uuid": "uuid",
+    "code": 1200
+}
+###
+
+###
+@api {get} api/private/v2/merchants/qubera/account/verification_status Get verification status
+@apiName  Get verification status
+@apiVersion 0.0.1
+@apiGroup Qubera
+@apiUse Exrates
+
+@apiExample {curl} Example usage:
+curl -X GET \
+  http://localhost:8080/api/private/v2/merchants/qubera/verification_status \
+  -H 'exrates-rest-token: $token'
+
+@apiSuccessExample {json} Success-Response:
+{
+    "data": "SUCCESS",
+    "error": null
+}
 
 @apiErrorExample {json} Error-Response:
 HTTP/1.1 400 OK

@@ -3,7 +3,6 @@ package me.exrates.controller.merchants;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
-import me.exrates.model.dto.AccountCreateDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestParamsDto;
@@ -29,7 +28,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -115,38 +113,6 @@ public class QuberaMerchantController {
         String result = quberaService.getUserVerificationStatus(getPrincipalEmail());
         return new ResponseModel<>(result);
     }
-
-//    @PostMapping(value = "/merchants/qubera/payment/internal", consumes = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseModel<?> createInternalPayment() {
-//        return null;
-//    }
-//
-//    @PostMapping(value = "/merchants/qubera/payment/external", consumes = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseModel<?> createExternalPayment() {
-//        return null;
-//    }
-//
-//    @PostMapping(value = API_PRIVATE_V2 + "/merchants/qubera/payment/toMaster", consumes = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseModel<ResponsePaymentDto> createPaymentToMaster(@RequestBody @Valid PaymentRequestDto paymentRequestDto) {
-//        ResponsePaymentDto result = quberaService.createPaymentToMaster(getPrincipalEmail(), paymentRequestDto);
-//        return new ResponseModel<>(result);
-//    }
-//
-//    @PostMapping(value = "/merchants/qubera/payment/fromMaster", consumes = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseModel<ResponsePaymentDto> createPaymentFromMaster(@RequestBody @Valid PaymentRequestDto paymentRequestDto) {
-//        ResponsePaymentDto result = quberaService.createPaymentFromMater(getPrincipalEmail(), paymentRequestDto);
-//        return new ResponseModel<>(result);
-//    }
-//
-//    @PutMapping(value = "/merchants/qubera/confirm/{paymentId}/toMaster")
-//    public ResponseModel<String> confirmPaymentToMaster(@PathVariable Integer paymentId) {
-//        return new ResponseModel<>(quberaService.confirmPaymentToMaster(paymentId));
-//    }
-//
-//    @PutMapping(value = "/merchants/qubera/confirm/{paymentId}/fromMaster")
-//    public ResponseModel<String> confirmPaymentFromMaster(@PathVariable Integer paymentId) {
-//        return new ResponseModel<>(quberaService.confirmPaymentFRomMaster(paymentId));
-//    }
 
     private String getPrincipalEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
