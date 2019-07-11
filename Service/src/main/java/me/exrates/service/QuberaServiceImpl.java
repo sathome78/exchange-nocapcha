@@ -3,27 +3,35 @@ package me.exrates.service;
 import com.google.common.collect.Maps;
 import me.exrates.dao.QuberaDao;
 import me.exrates.model.Currency;
+import me.exrates.model.Email;
 import me.exrates.model.Merchant;
+import me.exrates.model.QuberaUserData;
 import me.exrates.model.User;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.constants.Constants;
 import me.exrates.model.dto.AccountCreateDto;
-import me.exrates.model.dto.qubera.AccountInfoDto;
 import me.exrates.model.dto.AccountQuberaRequestDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
-import me.exrates.model.dto.qubera.ExternalPaymentDto;
-import me.exrates.model.dto.qubera.PaymentRequestDto;
-import me.exrates.model.dto.qubera.QuberaPaymentToMasterDto;
-import me.exrates.model.dto.qubera.QuberaRequestDto;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.qubera.ResponsePaymentDto;
+import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.model.enums.invoice.RefillStatusEnum;
+import me.exrates.model.dto.qubera.AccountInfoDto;
+import me.exrates.model.dto.qubera.ExternalPaymentDto;
+import me.exrates.model.dto.qubera.PaymentRequestDto;
+import me.exrates.model.dto.qubera.QuberaPaymentInfoDto;
+import me.exrates.model.dto.qubera.QuberaPaymentToMasterDto;
+import me.exrates.model.dto.qubera.QuberaRequestDto;
+import me.exrates.model.dto.qubera.ResponsePaymentDto;
+import me.exrates.model.enums.UserNotificationType;
+import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.model.ngExceptions.NgRefillException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.exception.RefillRequestIdNeededException;
+import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.kyc.http.KycHttpClient;
+import me.exrates.service.stomp.StompMessenger;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +41,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.Map;
 
 @Service
@@ -49,6 +58,9 @@ public class QuberaServiceImpl implements QuberaService {
     private final QuberaDao quberaDao;
     private final KycHttpClient kycHttpClient;
     private final UserService userService;
+    private final StompMessenger stompMessenger;
+    private final SendMailService sendMailService;
+    private final CommissionService commissionService;
 
     private @Value("${qubera.threshold.length}")
     int thresholdLength;
@@ -64,7 +76,10 @@ public class QuberaServiceImpl implements QuberaService {
                              RefillService refillService,
                              QuberaDao quberaDao,
                              KycHttpClient kycHttpClient,
-                             UserService userService) {
+                             UserService userService,
+                             StompMessenger stompMessenger,
+                             SendMailService sendMailService,
+                             CommissionService commissionService) {
         this.currencyService = currencyService;
         this.gtagService = gtagService;
         this.merchantService = merchantService;
@@ -72,16 +87,21 @@ public class QuberaServiceImpl implements QuberaService {
         this.quberaDao = quberaDao;
         this.kycHttpClient = kycHttpClient;
         this.userService = userService;
+        this.stompMessenger = stompMessenger;
+        this.sendMailService = sendMailService;
+        this.commissionService = commissionService;
     }
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
-        Integer requestId = request.getId();
-        if (requestId == null) {
-            throw new RefillRequestIdNeededException(request.toString());
-        }
+        logger.info(String.format("qubera refill email %s, amount %s ", request.getUserEmail(),
+                request.getAmount().toPlainString()));
+        PaymentRequestDto paymentRequestDto = new PaymentRequestDto(request.getAmount(), request.getCurrencyName());
+        //create request to make payment to master account
+        ResponsePaymentDto paymentToMaster = createPaymentToMaster(request.getUserEmail(), paymentRequestDto);
+        logger.info(String.format("Success create payment, email %s, paymentId %s, amount %s", request.getUserEmail(),
+                paymentToMaster.getPaymentId().toString(), paymentToMaster.getTransactionAmount().toPlainString()));
 
-        //todo check params
         Map<String, String> details = quberaDao.getUserDetailsForCurrency(request.getUserId(), request.getCurrencyId());
         Map<String, String> refillParams = Maps.newHashMap();
         String iban = details.getOrDefault("iban", "");
@@ -89,6 +109,21 @@ public class QuberaServiceImpl implements QuberaService {
         refillParams.put("iban", iban);
         refillParams.put("currency", request.getCurrencyName());
         refillParams.put("accountNumber", accountNumber);
+        refillParams.put("paymentAmount", paymentToMaster.getTransactionAmount().toPlainString());
+        refillParams.put("paymentId", paymentToMaster.getPaymentId().toString());
+
+        if (confirmPaymentToMaster(paymentToMaster.getPaymentId())) {
+            logger.info(String.format("Confirm payment, paymentId %s, amount %s", paymentToMaster.getPaymentId(),
+                    paymentToMaster.getTransactionAmount().toPlainString() ));
+            try {
+                processPayment(refillParams);
+            } catch (RefillRequestAppropriateNotFoundException e) {
+                logger.error("Some exception happens " + e.getMessage());
+            }
+        } else {
+            logger.error("Payment not confirmed {}" + paymentToMaster.getPaymentId());
+            throw new NgRefillException("Payment not confirmed {}" + paymentToMaster.getPaymentId());
+        }
         return refillParams;
     }
 
@@ -104,14 +139,13 @@ public class QuberaServiceImpl implements QuberaService {
                 .merchantId(merchant.getId())
                 .currencyId(currency.getId())
                 .amount(new BigDecimal(paymentAmount))
+                .address(StringUtils.EMPTY)
                 .merchantTransactionId(params.get("paymentId"))
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
-        Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto, userId, 0, RefillStatusEnum.ACCEPTED_AUTO);
-        requestAcceptDto.setRequestId(requestId);
-
-        refillService.autoAcceptRefillRequest(requestAcceptDto);
-        // todo send notification to transfer to master account
+        Integer requestId = refillService.createAndAutoAcceptRefillRequest(requestAcceptDto, userId);
+        params.put("request_id", requestId.toString());
+        sendNotification(userId, paymentAmount);
 
         final String gaTag = refillService.getUserGAByRequestId(requestId);
         logger.info("Process of sending data to Google Analytics...");
@@ -120,7 +154,24 @@ public class QuberaServiceImpl implements QuberaService {
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
-        return null;
+        QuberaUserData quberaUserData = quberaDao.getUserDataByUserId(withdrawMerchantOperationDto.getUserId());
+        logger.info("withdraw qubera service email " + quberaUserData.getEmail() + " , amount " + withdrawMerchantOperationDto.getAmount());
+        QuberaPaymentToMasterDto paymentToMasterDto = QuberaPaymentToMasterDto.builder()
+                .accountNumber(quberaUserData.getAccountNumber())
+                .beneficiaryAccountNumber(masterAccount)
+                .amount(new BigDecimal(withdrawMerchantOperationDto.getAmount()))
+                .currencyCode(withdrawMerchantOperationDto.getCurrency())
+                .narrative("Payment from master")
+                .build();
+
+        ResponsePaymentDto responsePaymentDto = kycHttpClient.createPaymentInternal(paymentToMasterDto, false);
+        logger.info("withdraw create payment internal success, amount - " + responsePaymentDto.getTransactionAmount().toPlainString()
+                + ", transaction " + responsePaymentDto.getTransactionCurrencyCode());
+        if (!kycHttpClient.confirmInternalPayment(responsePaymentDto.getPaymentId(), true)) {
+            logger.info("Fail confirm payment " + responsePaymentDto.getTransactionCurrencyCode());
+            throw new MerchantException("Payment not confirmed");
+        }
+        return Collections.emptyMap();
     }
 
     @Override
@@ -136,9 +187,17 @@ public class QuberaServiceImpl implements QuberaService {
 
     @Override
     public AccountQuberaResponseDto createAccount(AccountCreateDto accountCreateDto) {
-        String account = accountCreateDto.getStringFromParams();
+        logger.info("createAccount(), {}" + accountCreateDto.getEmail());
         User user = userService.findByEmail(accountCreateDto.getEmail());
+        if (quberaDao.existAccountByUserEmailAndCurrencyName(accountCreateDto.getEmail(),
+                accountCreateDto.getCurrencyCode())) {
+            QuberaUserData quberaUserData = quberaDao.getUserDataByUserId(user.getId());
+            return new AccountQuberaResponseDto(quberaUserData.getAccountNumber(), quberaUserData.getIban());
+        }
+
         Currency currency = currencyService.findByName(accountCreateDto.getCurrencyCode());
+        QuberaUserData userData = QuberaUserData.of(accountCreateDto, user.getId(), currency.getId());
+        String account = userData.buildAccountString();
         if (account.length() >= thresholdLength) {
             String error = "Count chars of request is over limit {}" + account.length();
             logger.error(error);
@@ -147,12 +206,17 @@ public class QuberaServiceImpl implements QuberaService {
 
         AccountQuberaRequestDto requestDto = new AccountQuberaRequestDto(account, accountCreateDto.getCurrencyCode(), poolId);
         AccountQuberaResponseDto responseDto = kycHttpClient.createAccount(requestDto);
-        boolean saveUserDetails = quberaDao.saveUserDetails(user.getId(), currency.getId(),
-                responseDto.getAccountNumber(), responseDto.getIban());
+        logger.info("Response from create account service success, iban {} + " + responseDto.getIban() + ", number "
+                + responseDto.getAccountNumber());
+        userData.setIban(responseDto.getIban());
+        userData.setAccountNumber(responseDto.getAccountNumber());
+
+        boolean saveUserDetails = quberaDao.saveUserDetails(userData);
 
         if (saveUserDetails) {
-            return responseDto;
+            return new AccountQuberaResponseDto(userData.getAccountNumber(), userData.getIban());
         } else {
+            logger.error("Error saving qubera user details " + accountCreateDto.getEmail());
             throw new NgDashboardException("Error while saving response",
                     Constants.ErrorApi.QUBERA_SAVE_ACCOUNT_RESPONSE_ERROR);
         }
@@ -171,7 +235,6 @@ public class QuberaServiceImpl implements QuberaService {
             throw new NgDashboardException("Account not found " + email,
                     Constants.ErrorApi.QUBERA_ACCOUNT_NOT_FOUND_ERROR);
         }
-
         return kycHttpClient.getBalanceAccount(account);
     }
 
@@ -190,7 +253,6 @@ public class QuberaServiceImpl implements QuberaService {
         paymentToMasterDto.setAccountNumber(account);
         paymentToMasterDto.setCurrencyCode(paymentRequestDto.getCurrencyCode());
         paymentToMasterDto.setNarrative("Inner transfer");
-
         return kycHttpClient.createPaymentInternal(paymentToMasterDto, true);
     }
 
@@ -210,17 +272,16 @@ public class QuberaServiceImpl implements QuberaService {
         paymentToMasterDto.setBeneficiaryAccountNumber(masterAccount);
         paymentToMasterDto.setCurrencyCode(paymentRequestDto.getCurrencyCode());
         paymentToMasterDto.setNarrative("Inner transfer");
-
         return kycHttpClient.createPaymentInternal(paymentToMasterDto, false);
     }
 
     @Override
-    public String confirmPaymentToMaster(Integer paymentId) {
+    public boolean confirmPaymentToMaster(Integer paymentId) {
         return kycHttpClient.confirmInternalPayment(paymentId, true);
     }
 
     @Override
-    public String confirmPaymentFRomMaster(Integer paymentId) {
+    public boolean confirmPaymentFRomMaster(Integer paymentId) {
         return kycHttpClient.confirmInternalPayment(paymentId, false);
     }
 
@@ -256,5 +317,60 @@ public class QuberaServiceImpl implements QuberaService {
     @Override
     public String confirmExternalPayment(Integer paymentId) {
         return kycHttpClient.confirmExternalPayment(paymentId);
+    }
+
+    @Override
+    public QuberaPaymentInfoDto getInfoForPayment(String email) {
+        User user = userService.findByEmail(email);
+
+        if (!quberaDao.existAccountByUserEmailAndCurrencyName(email, "EUR")) {
+            return null;
+        }
+
+        QuberaUserData userData = quberaDao.getUserDataByUserId(user.getId());
+        return new QuberaPaymentInfoDto(userData.getIban(), userData.getAccountNumber(), null);
+    }
+
+    @Override
+    public void sendNotification(QuberaRequestDto quberaRequestDto) {
+
+        Integer userId = quberaDao.findUserIdByAccountNumber(quberaRequestDto.getAccountNumber());
+        User user = userService.getUserById(userId);
+        String msg;
+        UserNotificationMessage message;
+        if (quberaRequestDto.getState().equalsIgnoreCase("Rejected")) {
+            msg = "Your payment was rejected, reason " + quberaRequestDto.getRejectionReason();
+            message = new UserNotificationMessage(WsSourceTypeEnum.FIAT, UserNotificationType.ERROR, msg);
+        } else {
+            msg = "Your payment was confirmed, amount " + quberaRequestDto.getPaymentAmount().toPlainString() + " " + quberaRequestDto.getCurrency();
+            message = new UserNotificationMessage(WsSourceTypeEnum.FIAT, UserNotificationType.SUCCESS, msg);
+        }
+        try {
+            stompMessenger.sendPersonalMessageToUser(user.getEmail(), message);
+        } catch (Exception e) {
+        }
+
+        Email email = new Email();
+        email.setTo(user.getEmail());
+        email.setSubject("Deposit for your bank account");
+        email.setMessage(msg);
+        sendMailService.sendInfoMail(email);
+    }
+
+    public void sendNotification(int userId, String paymentAmount) {
+        User user = userService.getUserById(userId);
+        String msg = "Success deposit amount " + paymentAmount + " EUR.";
+        UserNotificationMessage message =
+                new UserNotificationMessage(WsSourceTypeEnum.FIAT, UserNotificationType.SUCCESS, msg);
+        try {
+            stompMessenger.sendPersonalMessageToUser(user.getEmail(), message);
+        } catch (Exception e) {
+        }
+
+        Email email = new Email();
+        email.setTo(user.getEmail());
+        email.setSubject("Deposit fiat");
+        email.setMessage(msg);
+        sendMailService.sendInfoMail(email);
     }
 }

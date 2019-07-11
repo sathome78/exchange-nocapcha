@@ -12,8 +12,6 @@ import javax.validation.constraints.NotNull;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AccountCreateDto {
-    private static final String SEMICOLON = ";";
-    private static final String SPACE = " ";
 
     @NotNull
     private String firstName;
@@ -22,36 +20,16 @@ public class AccountCreateDto {
     private String lastName;
 
     @NotNull
-    private String dateOfBirth;
-
-    @NotNull
-    private String street;
-
-    @NotNull
-    private Integer zipCode;
+    private String address;
 
     @NotNull
     private String city;
 
     @NotNull
-    private String country;
-
-    @NotNull
-    private String phone;
+    private String countryCode;
 
     private String email;
 
     @NotNull
     private String currencyCode;
-
-    public String getStringFromParams() {
-        return new StringBuilder()
-                .append(firstName).append(SPACE).append(lastName).append(SEMICOLON)
-                .append(dateOfBirth).append(SEMICOLON)
-                .append(street).append(SEMICOLON)
-                .append(zipCode).append(SEMICOLON)
-                .append(country).append(SEMICOLON)
-                .append(phone).append(SEMICOLON)
-                .append(email).append(SEMICOLON).toString();
-    }
 }
