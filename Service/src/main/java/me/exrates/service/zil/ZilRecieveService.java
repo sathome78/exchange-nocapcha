@@ -1,11 +1,18 @@
 package me.exrates.service.zil;
 
+import com.firestack.laksaj.account.Wallet;
+import com.firestack.laksaj.blockchain.BlockchainInfo;
+import com.firestack.laksaj.blockchain.TxBlock;
+import com.firestack.laksaj.crypto.Schnorr;
 import com.firestack.laksaj.jsonrpc.HttpProvider;
 import com.firestack.laksaj.jsonrpc.Rep;
 import com.firestack.laksaj.transaction.Transaction;
+import com.firestack.laksaj.utils.Bech32;
 import com.google.gson.Gson;
 
 import javax.annotation.PostConstruct;
+import java.util.Arrays;
+import java.util.List;
 
 public class ZilRecieveService {
 
@@ -19,16 +26,25 @@ public class ZilRecieveService {
     public static void main(String[] args) throws Exception {
         ZilRecieveService zilRecieveService = new ZilRecieveService();
         zilRecieveService.init();
-//        zilRecieveService.checkRefills();
 
 
-//        Rep<TxBlock> txBlock = client.getTxBlock("160590");
-
-        Rep<Transaction> transaction = client.getTransaction("6b7094293e2991c1d4865e825bfdd59997d5169a6e3e58b7ed88f7d9aa00cc0b");
+        Rep<List<List<String>>> transactionList = client.getTransactionsForTxBlock("168406");
+        System.out.println(new Gson().toJson(transactionList));
+        Rep<Transaction> transaction = client.getTransaction("9a76aa00a93185ea7d20ae0225ca8ce34bbfcc26ac589303ec6563702cd83c4c");
         System.out.println(new Gson().toJson(transaction));
 
-//        Rep<TransactionList> transactionList = client.getRecentTransactions();
-//        System.out.println(new Gson().toJson(transactionList));
+
+        Rep<HttpProvider.BalanceResult> balance = client.getBalance("662c1a7787e37420dc150b60fa529189cf02521f");
+        Rep<HttpProvider.BalanceResult> balance2 = client.getBalance32("zil1sgg8m0sgxexza0z2ft4neh26yvldaa9udfgerj");
+        System.out.println(balance2 + "   adress!!!");
+        System.out.println(Bech32.fromBech32Address("zil1sgg8m0sgxexza0z2ft4neh26yvldaa9udfgerj"));
+        System.out.println(Bech32.toBech32Address("662c1a7787e37420dc150b60fa529189cf02521f"));
+        System.out.println("..........................................");
+        Wallet wallet = new Wallet();
+        System.out.println(wallet.createAccount());
+        System.out.println(Bech32.toBech32Address(wallet.createAccount()));
+        Schnorr schnorr = new Schnorr();
+//        schnorr.generateKeyPair();
     }
 
     void checkRefills(){
