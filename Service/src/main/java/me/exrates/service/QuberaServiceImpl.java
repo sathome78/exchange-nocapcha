@@ -326,12 +326,11 @@ public class QuberaServiceImpl implements QuberaService {
         }
 
         externalPaymentDto.setSenderAccountNumber(account);
-        return kycHttpClient.createExternalPayment(externalPaymentDto);
-    }
-
-    @Override
-    public String confirmExternalPayment(Integer paymentId) {
-        return kycHttpClient.confirmExternalPayment(paymentId);
+        ResponsePaymentDto externalPayment = kycHttpClient.createExternalPayment(externalPaymentDto);
+        if (kycHttpClient.confirmExternalPayment(externalPayment.getPaymentId())) {
+            return externalPayment;
+        }
+        throw new NgDashboardException(ErrorApiTitles.QUBERA_PAYMENT_NOT_CONFIFM);
     }
 
     @Override

@@ -144,7 +144,7 @@ HTTP/1.1 400 OK
 ###
 
 ###
-@api {get} api/private/v2/merchants/qubera/account/verification_status Get verification status
+@api {get} api/private/v2/merchants/qubera/verification_status Get verification status
 @apiName  Get verification status
 @apiVersion 0.0.1
 @apiGroup Qubera

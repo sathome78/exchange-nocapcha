@@ -273,7 +273,7 @@ public class KycHttpClient {
         }
     }
 
-    public String confirmExternalPayment(Integer paymentId) {
+    public boolean confirmExternalPayment(Integer paymentId) {
 
         String finalUrl = String.format("%s/payment/external/%d/confirm", uriApi, paymentId);
 
@@ -292,8 +292,22 @@ public class KycHttpClient {
             log.error("Error confirm external payment to master {}", toJson(responseEntity.getBody()));
             throw new NgDashboardException("Error confirm payment to master",
                     Constants.ErrorApi.QUBERA_CONFIRM_PAYMENT_TO_MASTER_ERROR);
+        }
+
+        if (!responseEntity.getStatusCode().is2xxSuccessful()) {
+            log.error("Error confirm external payment to master {}", responseEntity.getBody());
+            throw new NgDashboardException("Error confirm payment to master",
+                    Constants.ErrorApi.QUBERA_CONFIRM_PAYMENT_TO_MASTER_ERROR);
         } else {
-            return responseEntity.getBody();
+            ObjectMapper mapper = new ObjectMapper();
+            ResponseConfirmDto responseConfirmDto = null;
+            try {
+                //convert JSON string to Map
+                responseConfirmDto = mapper.readValue(responseEntity.getBody(), new TypeReference<ResponseConfirmDto>(){});
+            } catch (Exception e) {
+                log.info("Exception read value  {} to map {}", responseEntity.getBody(), e);
+            }
+            return responseConfirmDto != null && responseConfirmDto.getResult().equalsIgnoreCase("ok");
         }
     }
 

@@ -23,6 +23,7 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.GtagRefillService;
 import me.exrates.service.InputOutputService;
 import me.exrates.service.MerchantService;
+import me.exrates.service.QuberaService;
 import me.exrates.service.RefillService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.InvalidAmountException;
@@ -30,7 +31,6 @@ import me.exrates.service.exception.MerchantNotFoundException;
 import me.exrates.service.exception.MerchantServiceNotFoundException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
-import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.userOperation.UserOperationService;
 import org.slf4j.Logger;
@@ -64,7 +64,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static java.util.Objects.isNull;
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_CURRENCY_WARNING;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
@@ -87,6 +86,7 @@ public class NgRefillController {
     private final UserService userService;
     private final UserOperationService userOperationService;
     private final MerchantServiceContext merchantServiceContext;
+    private final QuberaService quberaService;
 
     private final GtagRefillService gtagRefillService;
 
@@ -99,6 +99,7 @@ public class NgRefillController {
                               RefillService refillService,
                               UserOperationService userOperationService,
                               MerchantServiceContext merchantServiceContext,
+                              QuberaService quberaService,
                               GtagRefillService gtagRefillService) {
         this.currencyService = currencyService;
         this.inputOutputService = inputOutputService;
@@ -108,6 +109,7 @@ public class NgRefillController {
         this.refillService = refillService;
         this.userOperationService = userOperationService;
         this.merchantServiceContext = merchantServiceContext;
+        this.quberaService = quberaService;
         this.gtagRefillService = gtagRefillService;
     }
 
@@ -213,8 +215,8 @@ public class NgRefillController {
 
         int minConfirmations = 0;
         if (isNotEmpty(merchantCurrencyData)) {
-                minConfirmations = inputOutputService.getMinConfirmationsRefillByMerchantId(merchantCurrencyData.get(0).getMerchantId()) != null
-                        ? inputOutputService.getMinConfirmationsRefillByMerchantId(merchantCurrencyData.get(0).getMerchantId()) : 0;
+            minConfirmations = inputOutputService.getMinConfirmationsRefillByMerchantId(merchantCurrencyData.get(0).getMerchantId()) != null
+                    ? inputOutputService.getMinConfirmationsRefillByMerchantId(merchantCurrencyData.get(0).getMerchantId()) : 0;
         }
         response.setMinConfirmations(minConfirmations);
         return response;
@@ -265,7 +267,13 @@ public class NgRefillController {
         CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, getPrincipalEmail(), locale)
                 .orElseThrow(InvalidAmountException::new);
         RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
+
         try {
+            if (merchantService.findById(request.getMerchantId()).getName().equalsIgnoreCase("Qubera")) {
+                Map<String, Object> res = new HashMap<>();
+                quberaService.refill(request).forEach((key, value) -> res.put(key, key));
+                return ResponseEntity.ok(res);
+            }
             Map<String, Object> response = refillService.createRefillRequest(request);
             return ResponseEntity.ok(response);
         } catch (Exception e) {

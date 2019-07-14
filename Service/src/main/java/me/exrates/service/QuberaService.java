@@ -68,8 +68,6 @@ public interface QuberaService extends IRefillable, IWithdrawable {
 
     ResponsePaymentDto createExternalPayment(ExternalPaymentDto externalPaymentDto, String email);
 
-    String confirmExternalPayment(Integer paymentId);
-
     QuberaPaymentInfoDto getInfoForPayment(String email);
 
     void sendNotification(QuberaRequestDto quberaRequestDto);

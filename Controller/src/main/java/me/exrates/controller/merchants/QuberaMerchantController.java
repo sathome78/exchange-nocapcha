@@ -3,19 +3,30 @@ package me.exrates.controller.merchants;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
+import me.exrates.model.User;
+import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.AccountQuberaResponseDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestParamsDto;
+import me.exrates.model.dto.ngDto.PinDtoSimple;
 import me.exrates.model.dto.qubera.AccountInfoDto;
+import me.exrates.model.dto.qubera.ExternalPaymentDto;
 import me.exrates.model.dto.qubera.QuberaPaymentInfoDto;
 import me.exrates.model.dto.qubera.QuberaRequestDto;
+import me.exrates.model.dto.qubera.ResponsePaymentDto;
+import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngModel.response.ResponseModel;
+import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.service.SecureService;
 import me.exrates.service.InputOutputService;
 import me.exrates.service.QuberaService;
+import me.exrates.service.UserService;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.RefillRequestAlreadyAcceptedException;
+import me.exrates.service.notifications.G2faService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +44,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.util.Locale;
 import java.util.Map;
 
@@ -47,12 +59,21 @@ public class QuberaMerchantController {
     private final static String API_PRIVATE_V2 = "/api/private/v2";
     private final QuberaService quberaService;
     private final InputOutputService inputOutputService;
+    private final UserService userService;
+    private final SecureService secureService;
+    private final G2faService g2faService;
 
     @Autowired
     public QuberaMerchantController(QuberaService quberaService,
-                                    InputOutputService inputOutputService) {
+                                    InputOutputService inputOutputService,
+                                    UserService userService,
+                                    SecureService secureService,
+                                    G2faService g2faService) {
         this.quberaService = quberaService;
         this.inputOutputService = inputOutputService;
+        this.userService = userService;
+        this.secureService = secureService;
+        this.g2faService = g2faService;
     }
 
     @PostMapping(value = "/merchants/qubera/payment/status", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -86,7 +107,12 @@ public class QuberaMerchantController {
 
 
     @PostMapping(value = API_PRIVATE_V2 + "/merchants/qubera/account/create", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseModel<AccountQuberaResponseDto> createBankAccount() {
+    public ResponseModel<AccountQuberaResponseDto> createBankAccount(@RequestBody @Valid PinDtoSimple pinDto) {
+        if (!userService.checkPin(getPrincipalEmail(), pinDto.getPin(), NotificationMessageEventEnum.QUBERA_ACCOUNT)) {
+            User user = userService.findByEmail(getPrincipalEmail());
+            secureService.sendPinCodeForCreateQuberaAccount(user);
+            throw new IncorrectPinException("Incorrect pin: " + pinDto.getPin());
+        }
         AccountQuberaResponseDto result = quberaService.createAccount(getPrincipalEmail());
         return new ResponseModel<>(result);
     }
@@ -112,6 +138,30 @@ public class QuberaMerchantController {
     public ResponseModel<String> getUserVerificationStatus() {
         String result = quberaService.getUserVerificationStatus(getPrincipalEmail());
         return new ResponseModel<>(result);
+    }
+
+    @SuppressWarnings("Duplicated")
+    @PostMapping(value = API_PRIVATE_V2 + "/merchants/qubera/request/pin")
+    public ResponseEntity<Void> sendUserPinCodeForCreateAccount() {
+        try {
+            User user = userService.findByEmail(getPrincipalEmail());
+            if (!g2faService.isGoogleAuthenticatorEnable(user.getId())) {
+                secureService.sendPinCodeForCreateQuberaAccount(user);
+                return ResponseEntity.status(HttpStatus.CREATED).build();
+            }
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            logger.error("Failed to send pin code on user email", e);
+            String message = "Failed to send pin code on user email";
+            throw new NgResponseException(ErrorApiTitles.FAILED_TO_SEND_PIN_CODE_ON_USER_EMAIL, message);
+        }
+    }
+
+    @PostMapping(value = API_PRIVATE_V2 + "/merchants/qubera/payment/external")
+    public ResponseModel<?> createExternalPayment(@RequestBody ExternalPaymentDto externalPaymentDto) {
+        ResponsePaymentDto responsePaymentDto =
+                quberaService.createExternalPayment(externalPaymentDto, getPrincipalEmail());
+        return new ResponseModel<>(responsePaymentDto);
     }
 
     private String getPrincipalEmail() {
