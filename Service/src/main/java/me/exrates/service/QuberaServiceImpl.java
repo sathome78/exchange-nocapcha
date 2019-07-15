@@ -84,6 +84,24 @@ public class QuberaServiceImpl implements QuberaService {
     private @Value("${qubera.master.account}")
     String masterAccount;
 
+    private @Value("${qubera.bic}")
+    String bic;
+
+    private @Value("${qubera.bank_name}")
+    String bankName;
+
+    private @Value("${qubera.swift_code}")
+    String swiftCode;
+
+    private @Value("${qubera.country}")
+    String country;
+
+    private @Value("${qubera.city}")
+    String city;
+
+    private @Value("${qubera.country}")
+    String address;
+
     @Value("${server-host}")
     private String host;
 
@@ -326,12 +344,11 @@ public class QuberaServiceImpl implements QuberaService {
         }
 
         externalPaymentDto.setSenderAccountNumber(account);
-        return kycHttpClient.createExternalPayment(externalPaymentDto);
-    }
-
-    @Override
-    public String confirmExternalPayment(Integer paymentId) {
-        return kycHttpClient.confirmExternalPayment(paymentId);
+        ResponsePaymentDto externalPayment = kycHttpClient.createExternalPayment(externalPaymentDto);
+        if (kycHttpClient.confirmExternalPayment(externalPayment.getPaymentId())) {
+            return externalPayment;
+        }
+        throw new NgDashboardException(ErrorApiTitles.QUBERA_PAYMENT_NOT_CONFIFM);
     }
 
     @Override
@@ -340,7 +357,15 @@ public class QuberaServiceImpl implements QuberaService {
         if (userData == null) {
             return null;
         }
-        return new QuberaPaymentInfoDto(userData.getIban(), userData.getAccountNumber(), null);
+        return QuberaPaymentInfoDto.builder()
+                .bic(bic)
+                .bankName(bankName)
+                .swiftCode(swiftCode)
+                .address(address)
+                .country(country)
+                .city(city)
+                .iban(userData.getIban())
+                .build();
     }
 
     @Override

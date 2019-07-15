@@ -7,23 +7,13 @@
 @apiUse ApiJSON
 
 @apiExample {curl} Example usage:
- curl -X POST \
-      http://localhost:8080/api/private/v2/merchants/qubera/account/create \
-      -H 'Content-Type: application/json' \
-      -H 'exrates-rest-token: $token' \
-      -d '{
-	    "firstName":"firstName",
-	    "lastName":"lastName",
-	    "address":"Flat 6, 28 street",
-	    "countryCode":"UK",
-	    "city":"London"
+curl -X POST \
+  http://localhost:8080/api/private/v2/merchants/qubera/account/create \
+  -H 'Content-Type: application/json' \
+  -H 'exrates-rest-token: $token' \
+  -d '{
+	"pin":"43851629"
 }'
-
-@apiParam {String} firstName - first name
-@apiParam {String} lastName - last name
-@apiParam {String} city - city
-@apiParam {String} address - Address line (without country name/code, postal code, city), example: Flat 6, 28 street
-@apiParam {String} countryCode - country code
 
 @apiSuccess {Object} data Data
 @apiSuccess {String} data.iban
@@ -122,7 +112,76 @@ HTTP/1.1 400 OK
 ###
 
 ###
-@api {post} api/private/v2/merchants/qubera/payment/create Create payment
+@api {get} api/private/v2/merchants/qubera/account/info Get info for payment
+@apiName  Get info for payment
+@apiVersion 0.0.1
+@apiGroup Qubera
+@apiUse Exrates
+
+@apiExample {curl} Example usage:
+ curl -X GET \
+      http://localhost:8080/api/private/v2/merchants/qubera/info \
+
+      -H 'exrates-rest-token: $token' \
+
+@apiSuccessExample {json} Success-Response:
+{
+    "data": {
+        "iban": "LT551234500002717981",
+        "bic": "STUALT21XXX",
+        "swiftCode": "STUALT21",
+        "bankName": "SATCHELPAY UAB",
+        "country": "LITHUANIA (LT)",
+        "city": "VILNIUS",
+        "address": "LITHUANIA (LT)"
+    },
+    "error": null
+}
+
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 OK
+{
+    "url": "url",
+    "cause": "cause",
+    "detail": "detail",
+    "title": "title",
+    "uuid": "uuid",
+    "code": 1200
+}
+###
+
+###
+@api {get} api/private/v2/merchants/qubera/verification_status Get verification status
+@apiName  Get verification status
+@apiVersion 0.0.1
+@apiGroup Qubera
+@apiUse Exrates
+
+@apiExample {curl} Example usage:
+curl -X GET \
+  http://localhost:8080/api/private/v2/merchants/qubera/verification_status \
+  -H 'exrates-rest-token: $token'
+
+@apiSuccessExample {json} Success-Response:
+{
+    "data": "SUCCESS",
+    "error": null
+}
+
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 OK
+{
+    "url": "url",
+    "cause": "cause",
+    "detail": "detail",
+    "title": "title",
+    "uuid": "uuid",
+    "code": 1200
+}
+###
+
+###
+@api {post} api/private/v2/balances/refill/request/create Create payment
 @apiName  Create payment to master
 @apiVersion 0.0.1
 @apiGroup Qubera
@@ -131,7 +190,7 @@ HTTP/1.1 400 OK
 
 @apiExample {curl} Example usage:
  curl -X POST \
-  http://localhost:8080/api/private/v2/merchants/qubera/payment/createe \
+  http://localhost:8080/api/private/v2/balances/refill/request/create \
   -H 'Content-Type: application/json' \
   -H 'exrates-rest-token: $Token' \
   -d '{
@@ -202,6 +261,34 @@ HTTP/1.1 400 OK
       {
         "data": true
       }
+
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 OK
+{
+    "url": "url",
+    "cause": "cause",
+    "detail": "detail",
+    "title": "title",
+    "uuid": "uuid",
+    "code": 1200
+}
+###
+
+###
+@api {post} api/private/v2/merchants/qubera/request/pin Create pin code for create qubera account
+@apiName  Create pin code for create qubera account
+@apiVersion 0.0.1
+@apiGroup Qubera
+@apiUse Exrates
+@apiUse ApiJSON
+
+@apiExample {curl} Example usage:
+ curl -X POST \
+  http://localhost:8080/api/private/v2/merchants/qubera/request/pin \
+  -H 'Exrates-rest-token: $token' \
+
+@apiSuccessExample {json} Success-Response:
+HTTP/1.1 201 Created
 
 @apiErrorExample {json} Error-Response:
 HTTP/1.1 400 OK
