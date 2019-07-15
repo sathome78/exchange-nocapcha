@@ -120,11 +120,6 @@ public class QuberaServiceMsImpl implements QuberaService {
     }
 
     @Override
-    public String confirmExternalPayment(Integer paymentId) {
-        return null;
-    }
-
-    @Override
     public QuberaPaymentInfoDto getInfoForPayment(String email) {
         return null;
     }
