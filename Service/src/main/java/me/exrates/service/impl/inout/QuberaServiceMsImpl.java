@@ -147,6 +147,11 @@ public class QuberaServiceMsImpl implements QuberaService {
     }
 
     @Override
+    public boolean confirmExternalPayment(Integer paymentId) {
+        return false;
+    }
+
+    @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         return null;
     }
