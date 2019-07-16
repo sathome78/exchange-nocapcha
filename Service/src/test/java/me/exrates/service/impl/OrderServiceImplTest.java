@@ -3055,7 +3055,6 @@ public class OrderServiceImplTest {
                 anyInt(),
                 anyInt(),
                 any(Locale.class));
-        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
     }
 
     @Ignore
@@ -3163,7 +3162,6 @@ public class OrderServiceImplTest {
                 anyInt(),
                 anyInt(),
                 any(Locale.class));
-        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
     }
 
     @Test
@@ -4958,7 +4956,6 @@ public class OrderServiceImplTest {
                 anyInt(),
                 anyInt(),
                 any(Locale.class));
-        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
     }
 
     @Test
@@ -5000,7 +4997,6 @@ public class OrderServiceImplTest {
                 anyInt(),
                 anyInt(),
                 any(Locale.class));
-        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
     }
 
     @Test
@@ -5042,7 +5038,6 @@ public class OrderServiceImplTest {
                 anyInt(),
                 anyInt(),
                 any(Locale.class));
-        verify(currencyService, atLeastOnce()).findCurrencyPairById(anyInt());
     }
 
     @Test

@@ -852,15 +852,15 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, OrderStatus status,
-                                                       OperationType operationType,
-                                                       String scope, Integer offset, Integer limit, Locale locale) {
+                                                       OperationType operationType, String scope, Integer offset,
+                                                       Integer limit, Locale locale) {
         return getMyOrdersWithState(userId, currencyPair, Collections.singletonList(status), operationType, scope, offset, limit, locale);
     }
 
     @Override
     public List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, List<OrderStatus> statuses,
-                                                       OperationType operationType,
-                                                       String scope, Integer offset, Integer limit, Locale locale) {
+                                                       OperationType operationType, String scope, Integer offset,
+                                                       Integer limit, Locale locale) {
         if (StringUtils.isEmpty(scope)) {
             scope = "OTHER";
         }
@@ -868,48 +868,54 @@ public class OrderDaoImpl implements OrderDao {
         String userFilterClause;
         switch (scope) {
             case "ALL":
-                userFilterClause = " AND (EXORDERS.user_id = :user_id OR EXORDERS.user_acceptor_id = :user_id) ";
+                userFilterClause = " AND (o.user_id = :user_id OR o.user_acceptor_id = :user_id) ";
                 break;
             case "ACCEPTED":
-                userFilterClause = " AND EXORDERS.user_acceptor_id = :user_id ";
+                userFilterClause = " AND o.user_acceptor_id = :user_id ";
                 break;
             default:
-                userFilterClause = " AND EXORDERS.user_id = :user_id ";
+                userFilterClause = " AND o.user_id = :user_id ";
                 break;
         }
 
-        String currencyPairClause = Objects.isNull(currencyPair) ? StringUtils.EMPTY : String.format(" AND EXORDERS.currency_pair_id = %s ", String.valueOf(currencyPair.getId()));
-
-        String limitClause = limit == -1 ? StringUtils.EMPTY : String.format(" LIMIT %s OFFSET %s ", String.valueOf(limit), String.valueOf(offset));
+        String currencyPairClause = Objects.isNull(currencyPair)
+                ? StringUtils.EMPTY
+                : " AND o.currency_pair_id = :currency_pair_id ";
 
         List<Integer> statusIds = statuses
                 .stream()
                 .map(OrderStatus::getStatus)
                 .collect(Collectors.toList());
-        List<Integer> operationTypesIds = Arrays.asList(3, 4);
 
-        String orderClause = " ORDER BY date_acception ASC, date_creation DESC ";
+        String orderClause = " ORDER BY o.date_acception ASC, o.date_creation DESC ";
         if (statusIds.size() > 1) {
-            orderClause = " ORDER BY status_modification_date DESC ";
+            orderClause = " ORDER BY o.status_modification_date DESC ";
         }
-        String sql = "SELECT EXORDERS.id," +
-                " EXORDERS.user_id," +
-                " EXORDERS.operation_type_id," +
-                " EXORDERS.exrate," +
-                " EXORDERS.amount_base," +
-                " EXORDERS.amount_convert," +
-                " EXORDERS.commission_id," +
-                " EXORDERS.commission_fixed_amount," +
-                " EXORDERS.user_acceptor_id," +
-                " EXORDERS.date_creation," +
-                " EXORDERS.date_acception," +
-                " EXORDERS.status_id," +
-                " EXORDERS.status_modification_date," +
-                " EXORDERS.currency_pair_id," +
-                " EXORDERS.base_type" +
-                " FROM EXORDERS " +
-                " WHERE status_id IN (:status_ids) " +
-                " AND operation_type_id IN (:operation_type_id) " +
+
+        String limitClause = limit == -1
+                ? StringUtils.EMPTY
+                : String.format(" LIMIT %s OFFSET %s ", String.valueOf(limit), String.valueOf(offset));
+
+        String sql = "SELECT o.id," +
+                " o.user_id," +
+                " o.operation_type_id," +
+                " o.exrate," +
+                " o.amount_base," +
+                " o.amount_convert," +
+                " o.commission_id," +
+                " o.commission_fixed_amount," +
+                " o.user_acceptor_id," +
+                " o.date_creation," +
+                " o.date_acception," +
+                " o.status_id," +
+                " o.status_modification_date," +
+                " o.currency_pair_id," +
+                " o.base_type," +
+                " cp.name AS currency_pair_name " +
+                "FROM EXORDERS o " +
+                "JOIN CURRENCY_PAIR cp ON cp.id = o.currency_pair_id " +
+                "WHERE o.status_id IN (:status_ids) " +
+                "AND o.operation_type_id IN (:operation_type_ids) " +
                 currencyPairClause +
                 userFilterClause +
                 orderClause +
@@ -919,11 +925,15 @@ public class OrderDaoImpl implements OrderDao {
         params.put("user_id", userId);
         params.put("status_ids", statusIds);
         if (Objects.nonNull(operationType)) {
-            params.put("operation_type_id", operationType.getType());
+            params.put("operation_type_ids", operationType.getType());
         } else {
-            params.put("operation_type_id", operationTypesIds);
+            params.put("operation_type_ids", Arrays.asList(3, 4));
         }
-        return slaveForReportsTemplate.query(sql, params, (rs, rowNum) -> {
+        if (nonNull(currencyPair)) {
+            params.put("currency_pair_id", currencyPair.getId());
+        }
+
+        return slaveJdbcTemplate.query(sql, params, (rs, rowNum) -> {
             OrderWideListDto orderWideListDto = new OrderWideListDto();
             orderWideListDto.setId(rs.getInt("id"));
             orderWideListDto.setUserId(rs.getInt("user_id"));
@@ -941,11 +951,12 @@ public class OrderDaoImpl implements OrderDao {
             }
             orderWideListDto.setAmountWithCommission(BigDecimalProcessing.formatLocale(amountWithCommission, locale, 2));
             orderWideListDto.setUserAcceptorId(rs.getInt("user_acceptor_id"));
-            orderWideListDto.setDateCreation(rs.getTimestamp("date_creation") == null ? null : rs.getTimestamp("date_creation").toLocalDateTime());
-            orderWideListDto.setDateAcception(rs.getTimestamp("date_acception") == null ? null : rs.getTimestamp("date_acception").toLocalDateTime());
+            orderWideListDto.setDateCreation(isNull(rs.getTimestamp("date_creation")) ? null : rs.getTimestamp("date_creation").toLocalDateTime());
+            orderWideListDto.setDateAcception(isNull(rs.getTimestamp("date_acception")) ? null : rs.getTimestamp("date_acception").toLocalDateTime());
             orderWideListDto.setStatus(OrderStatus.convert(rs.getInt("status_id")));
-            orderWideListDto.setDateStatusModification(rs.getTimestamp("status_modification_date") == null ? null : rs.getTimestamp("status_modification_date").toLocalDateTime());
+            orderWideListDto.setDateStatusModification(isNull(rs.getTimestamp("status_modification_date")) ? null : rs.getTimestamp("status_modification_date").toLocalDateTime());
             orderWideListDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
+            orderWideListDto.setCurrencyPairName(rs.getString("currency_pair_name"));
             orderWideListDto.setOrderBaseType(OrderBaseType.valueOf(rs.getString("base_type")));
             orderWideListDto.setOperationType(String.join(" ", orderWideListDto.getOperationTypeEnum().name(), orderWideListDto.getOrderBaseType().name()));
             return orderWideListDto;
@@ -953,7 +964,7 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public int getUnfilteredOrdersCount(int id, CurrencyPair currencyPair, List<OrderStatus> statuses, OperationType operationType, String scope, int offset, int limit, Locale locale) {
+    public int getUnfilteredOrdersCount(int id, CurrencyPair currencyPair, List<OrderStatus> statuses, OperationType operationType, String scope, int offset, int limit) {
         if (StringUtils.isEmpty(scope)) {
             scope = "OTHER";
         }
@@ -961,35 +972,38 @@ public class OrderDaoImpl implements OrderDao {
         String userFilterClause;
         switch (scope) {
             case "ALL":
-                userFilterClause = " AND (EXORDERS.user_id = :user_id OR EXORDERS.user_acceptor_id = :user_id) ";
+                userFilterClause = " AND (o.user_id = :user_id OR o.user_acceptor_id = :user_id) ";
                 break;
             case "ACCEPTED":
-                userFilterClause = " AND EXORDERS.user_acceptor_id = :user_id ";
+                userFilterClause = " AND o.user_acceptor_id = :user_id ";
                 break;
             default:
-                userFilterClause = " AND EXORDERS.user_id = :user_id ";
+                userFilterClause = " AND o.user_id = :user_id ";
                 break;
         }
 
-        String currencyPairClause = Objects.isNull(currencyPair) ? StringUtils.EMPTY : String.format(" AND EXORDERS.currency_pair_id = %s ", String.valueOf(currencyPair.getId()));
-
-        String limitClause = limit == -1 ? StringUtils.EMPTY : String.format(" LIMIT %s OFFSET %s ", String.valueOf(limit), String.valueOf(offset));
+        String currencyPairClause = Objects.isNull(currencyPair)
+                ? StringUtils.EMPTY
+                : String.format(" AND o.currency_pair_id = %s ", String.valueOf(currencyPair.getId()));
 
         List<Integer> statusIds = statuses
                 .stream()
                 .map(OrderStatus::getStatus)
                 .collect(Collectors.toList());
-        List<Integer> operationTypesIds = Arrays.asList(3, 4);
 
-        String orderClause = " ORDER BY date_acception ASC, date_creation DESC ";
+        String orderClause = " ORDER BY o.date_acception ASC, o.date_creation DESC ";
         if (statusIds.size() > 1) {
-            orderClause = " ORDER BY status_modification_date DESC ";
+            orderClause = " ORDER BY o.status_modification_date DESC ";
         }
 
-        String sql = "SELECT COUNT(*) " +
-                "FROM EXORDERS " +
-                " WHERE status_id IN (:status_ids) " +
-                " AND operation_type_id IN (:operation_type_id) " +
+        String limitClause = limit == -1
+                ? StringUtils.EMPTY
+                : String.format(" LIMIT %s OFFSET %s ", String.valueOf(limit), String.valueOf(offset));
+
+        String sql = "SELECT COUNT(o.id) " +
+                "FROM EXORDERS o " +
+                "WHERE o.status_id IN (:status_ids) " +
+                "AND o.operation_type_id IN (:operation_type_ids) " +
                 currencyPairClause +
                 userFilterClause +
                 orderClause +
@@ -999,11 +1013,12 @@ public class OrderDaoImpl implements OrderDao {
         params.put("user_id", id);
         params.put("status_ids", statusIds);
         if (Objects.nonNull(operationType)) {
-            params.put("operation_type_id", operationType.getType());
+            params.put("operation_type_ids", operationType.getType());
         } else {
-            params.put("operation_type_id", operationTypesIds);
+            params.put("operation_type_ids", Arrays.asList(3, 4));
         }
-        return slaveForReportsTemplate.queryForObject(sql, params, Integer.class);
+
+        return slaveJdbcTemplate.queryForObject(sql, params, Integer.class);
     }
 
     @Override
