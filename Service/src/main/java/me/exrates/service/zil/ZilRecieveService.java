@@ -1,5 +1,6 @@
 package me.exrates.service.zil;
 
+import com.firestack.laksaj.crypto.KeyTools;
 import com.firestack.laksaj.account.Wallet;
 import com.firestack.laksaj.blockchain.BlockchainInfo;
 import com.firestack.laksaj.blockchain.TxBlock;
@@ -27,11 +28,18 @@ public class ZilRecieveService {
         ZilRecieveService zilRecieveService = new ZilRecieveService();
         zilRecieveService.init();
 
+//        zilRecieveService.checkRefills();
+//        generete priv key
+        System.out.println(KeyTools.generatePrivateKey());
 
         Rep<List<List<String>>> transactionList = client.getTransactionsForTxBlock("168406");
         System.out.println(new Gson().toJson(transactionList));
         Rep<Transaction> transaction = client.getTransaction("9a76aa00a93185ea7d20ae0225ca8ce34bbfcc26ac589303ec6563702cd83c4c");
         System.out.println(new Gson().toJson(transaction));
+//        Rep<TxBlock> txBlock = client.getTxBlock("160590");
+
+//        Rep<Transaction> transaction = client.getTransaction("6b7094293e2991c1d4865e825bfdd59997d5169a6e3e58b7ed88f7d9aa00cc0b");
+//        System.out.println(new Gson().toJson(transaction));
 
 
         Rep<HttpProvider.BalanceResult> balance = client.getBalance("662c1a7787e37420dc150b60fa529189cf02521f");
