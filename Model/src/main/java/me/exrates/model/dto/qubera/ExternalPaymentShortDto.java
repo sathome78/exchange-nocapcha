@@ -6,16 +6,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Setter
 @Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class BeneficiaryAccountDto {
-    private String accountNumber;
-    private String bankAddress;
-    private String bankCountryCode;
-    private String bankName;
-    private String swift;
+@Builder(builderClassName = "Builder")
+public class ExternalPaymentShortDto {
+    private String firstName;
+    private String lastName;
     private String iban;
+    private String narrative;
+    private String amount;
+    private String currencyCode;
 }

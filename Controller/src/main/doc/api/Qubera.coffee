@@ -112,7 +112,7 @@ HTTP/1.1 400 OK
 ###
 
 ###
-@api {get} api/private/v2/merchants/qubera/account/info Get info for payment
+@api {get} api/private/v2/merchants/qubera/info Get info for payment
 @apiName  Get info for payment
 @apiVersion 0.0.1
 @apiGroup Qubera

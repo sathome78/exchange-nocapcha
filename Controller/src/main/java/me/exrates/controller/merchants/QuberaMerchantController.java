@@ -11,9 +11,11 @@ import me.exrates.model.dto.RefillRequestParamsDto;
 import me.exrates.model.dto.ngDto.PinDtoSimple;
 import me.exrates.model.dto.qubera.AccountInfoDto;
 import me.exrates.model.dto.qubera.ExternalPaymentDto;
+import me.exrates.model.dto.qubera.ExternalPaymentShortDto;
 import me.exrates.model.dto.qubera.QuberaPaymentInfoDto;
 import me.exrates.model.dto.qubera.QuberaRequestDto;
 import me.exrates.model.dto.qubera.ResponsePaymentDto;
+import me.exrates.model.dto.qubera.responses.ExternalPaymentResponseDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.ngExceptions.NgDashboardException;
@@ -158,10 +160,10 @@ public class QuberaMerchantController {
     }
 
     @PostMapping(value = API_PRIVATE_V2 + "/merchants/qubera/payment/external")
-    public ResponseModel<?> createExternalPayment(@RequestBody ExternalPaymentDto externalPaymentDto) {
-        ResponsePaymentDto responsePaymentDto =
+    public ResponseModel<?> createExternalPayment(@RequestBody ExternalPaymentShortDto externalPaymentDto) {
+        ExternalPaymentResponseDto response =
                 quberaService.createExternalPayment(externalPaymentDto, getPrincipalEmail());
-        return new ResponseModel<>(responsePaymentDto);
+        return new ResponseModel<>(response);
     }
 
     private String getPrincipalEmail() {
