@@ -1,18 +1,19 @@
 package me.exrates.service.zil;
 
-import com.firestack.laksaj.crypto.KeyTools;
 import com.firestack.laksaj.account.Wallet;
-import com.firestack.laksaj.blockchain.BlockchainInfo;
-import com.firestack.laksaj.blockchain.TxBlock;
+import com.firestack.laksaj.crypto.KeyTools;
 import com.firestack.laksaj.crypto.Schnorr;
 import com.firestack.laksaj.jsonrpc.HttpProvider;
 import com.firestack.laksaj.jsonrpc.Rep;
 import com.firestack.laksaj.transaction.Transaction;
 import com.firestack.laksaj.utils.Bech32;
 import com.google.gson.Gson;
+import org.web3j.crypto.ECKeyPair;
 
 import javax.annotation.PostConstruct;
-import java.util.Arrays;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.List;
 
 public class ZilRecieveService {
@@ -31,11 +32,13 @@ public class ZilRecieveService {
 //        zilRecieveService.checkRefills();
 //        generete priv key
         System.out.println(KeyTools.generatePrivateKey());
+//        System.out.println(ecKeyPair.getPublicKey());
+        System.out.println("....................................");
 
         Rep<List<List<String>>> transactionList = client.getTransactionsForTxBlock("168406");
         System.out.println(new Gson().toJson(transactionList));
-        Rep<Transaction> transaction = client.getTransaction("9a76aa00a93185ea7d20ae0225ca8ce34bbfcc26ac589303ec6563702cd83c4c");
-        System.out.println(new Gson().toJson(transaction));
+//        Rep<Transaction> transaction = client.getTransaction("9a76aa00a93185ea7d20ae0225ca8ce34bbfcc26ac589303ec6563702cd83c4c");
+//        System.out.println(new Gson().toJson(transaction));
 //        Rep<TxBlock> txBlock = client.getTxBlock("160590");
 
 //        Rep<Transaction> transaction = client.getTransaction("6b7094293e2991c1d4865e825bfdd59997d5169a6e3e58b7ed88f7d9aa00cc0b");
@@ -53,6 +56,20 @@ public class ZilRecieveService {
         System.out.println(Bech32.toBech32Address(wallet.createAccount()));
         Schnorr schnorr = new Schnorr();
 //        schnorr.generateKeyPair();
+    }
+
+    String generateNewAddress(){
+        String privKey = null;
+        try {
+            privKey = KeyTools.generatePrivateKey();
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (NoSuchProviderException e) {
+            e.printStackTrace();
+        }
+        return privKey;
     }
 
     void checkRefills(){
