@@ -79,4 +79,6 @@ public interface QuberaService extends IRefillable, IWithdrawable {
     void processingCallBack(String referenceId, KycStatusResponseDto kycStatusResponseDto);
 
     OnboardingResponseDto startVerificationProcessing(IdentityDataRequest identityDataRequest, String email);
+
+    boolean confirmExternalPayment(Integer paymentId);
 }

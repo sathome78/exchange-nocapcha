@@ -301,3 +301,116 @@ HTTP/1.1 400 OK
     "code": 1200
 }
 ###
+
+###
+@api {put} api/private/v2/merchants/qubera/payment/external/confirm Confirm external payment
+@apiName  Confirm external payment
+@apiVersion 0.0.1
+@apiGroup Qubera
+@apiUse Exrates
+@apiUse ApiJSON
+
+@apiExample {curl} Example usage:
+ curl -X PUT \
+  http://localhost:8080/api/private/v2/merchants/qubera/payment/external/confirm \
+   -H 'Content-Type: application/json' \
+   -H 'exrates-rest-token: $token' \
+   -d '{
+	    "pin":"324234234",
+	    "paymentId":376
+}'
+
+@apiSuccessExample {json} Success-Response:
+HTTP/1.1 200 OK
+  {
+  "data":true
+  }
+
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 OK
+{
+    "url": "url",
+    "cause": "cause",
+    "detail": "detail",
+    "title": "title",
+    "uuid": "uuid",
+    "code": 1200
+}
+###
+
+###
+@api {post} /api/private/v2/merchants/qubera/payment/external Create external payment
+@apiName  Create external payment
+@apiVersion 0.0.1
+@apiGroup Qubera
+@apiUse Exrates
+@apiUse ApiJSON
+
+
+@apiDescription Payment for 2 types: sepa and swift. FirstName and lastName setup if companyName is null, and vice versa.
+@apiExample {curl} SEPA:
+curl -X POST \
+  http://localhost:8080/api/private/v2/merchants/qubera/payment/external \
+  -H 'Content-Type: application/json' \
+  -H 'exrates-rest-token: $token' \
+  -d '{
+	"amount":"200",
+	"currencyCode":"EUR",
+	"firstName":"Jonh",
+	"lastName":"Dou",
+	"companyName":"Roga&Koputa",
+	"iban":"wefewfwefwefwefwe",
+	"narrative":"description",
+	"type":"sepa"
+}'
+
+@apiExample {curl} SWIFT:
+  curl -X POST \
+  http://localhost:8080/api/private/v2/merchants/qubera/payment/external \
+  -H 'Content-Type: application/json' \
+  -H 'exrates-rest-token: $token' \
+  -d '{
+	"amount":"200",
+	"currencyCode":"EUR",
+	"firstName":"Jonh",
+	"lastName":"Dou",
+	"companyName":"Roga&Koputa",
+	"accountNumber":"wefewfwefwefwefwe",
+	"swift": "wefewfw",
+	"narrative":"description",
+	"type":"swift",
+	"address":"Flat 121, holodnogorskaya 6",
+	"city":"Kharkov",
+	"countryCode":"UA"
+}'
+
+@apiSuccessExample {json} Success-Response:
+HTTP/1.1 200 OK
+  {
+    "id": 10000177,
+    "paymentAmount": {
+      "amount": 10.00,
+      "currencyCode": "EUR"
+      },
+    "feeAmount": {
+      "amount": 105.00,
+      "currencyCode": "EUR"
+      },
+   "rate": {
+      "from": "EUR",
+       "to": "EUR",
+      "value": 1
+      }
+   }
+
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 OK
+{
+    "url": "url",
+    "cause": "cause",
+    "detail": "detail",
+    "title": "title",
+    "uuid": "uuid",
+    "code": 1200
+}
+###

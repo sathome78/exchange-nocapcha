@@ -10,11 +10,10 @@ import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestParamsDto;
 import me.exrates.model.dto.ngDto.PinDtoSimple;
 import me.exrates.model.dto.qubera.AccountInfoDto;
-import me.exrates.model.dto.qubera.ExternalPaymentDto;
 import me.exrates.model.dto.qubera.ExternalPaymentShortDto;
 import me.exrates.model.dto.qubera.QuberaPaymentInfoDto;
 import me.exrates.model.dto.qubera.QuberaRequestDto;
-import me.exrates.model.dto.qubera.ResponsePaymentDto;
+import me.exrates.model.dto.qubera.RequestConfirmExternalPaymentDto;
 import me.exrates.model.dto.qubera.responses.ExternalPaymentResponseDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
@@ -40,6 +39,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -164,6 +164,16 @@ public class QuberaMerchantController {
         ExternalPaymentResponseDto response =
                 quberaService.createExternalPayment(externalPaymentDto, getPrincipalEmail());
         return new ResponseModel<>(response);
+    }
+
+    @PutMapping(value = API_PRIVATE_V2 + "/merchants/qubera/payment/external/confirm")
+    public ResponseModel<?> confirmExternalPayment(@RequestBody @Valid RequestConfirmExternalPaymentDto requestDto) {
+        if (!userService.checkPin(getPrincipalEmail(), requestDto.getPin(), NotificationMessageEventEnum.WITHDRAW)) {
+            User user = userService.findByEmail(getPrincipalEmail());
+            secureService.sendPinCodeForCreateQuberaAccount(user);
+            throw new IncorrectPinException("Incorrect pin: " + requestDto.getPin());
+        }
+        return new ResponseModel<>(quberaService.confirmExternalPayment(requestDto.getPaymentId()));
     }
 
     private String getPrincipalEmail() {
