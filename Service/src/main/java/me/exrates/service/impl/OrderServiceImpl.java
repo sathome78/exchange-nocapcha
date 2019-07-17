@@ -202,8 +202,6 @@ public class OrderServiceImpl implements OrderService {
 
     @Value("${orders.max-exrate-deviation-percent}")
     private BigDecimal exrateDeviationPercent;
-    private static final BigDecimal percentHighMultiplier = BigDecimal.valueOf(1.2);
-    private static final BigDecimal percentLowMultiplier = BigDecimal.valueOf(0.8);
     public static final String BUY = "BUY";
     public static final String SELL = "SELL";
     public static final String SCOPE = "ALL";
