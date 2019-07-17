@@ -414,3 +414,65 @@ HTTP/1.1 400 OK
     "code": 1200
 }
 ###
+
+###
+@api {post} /api/private/v2/balances/withdraw/request/pin Create pin code for withdraw from bank account
+@apiName  Create pin code for withdraw from bank account
+@apiVersion 0.0.1
+@apiGroup Qubera
+@apiUse Exrates
+@apiUse ApiJSON
+
+@apiExample {curl} Example usage:
+ curl -X POST \
+  http://localhost:8080/api/private/v2/balances/withdraw/request/pin \
+  -H 'Exrates-rest-token: $token' \
+  -d '{
+	"amount": 200,
+	"currencyName":"EUR",
+
+@apiSuccessExample {json} Success-Response:
+HTTP/1.1 201 Created
+
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 OK
+{
+    "url": "url",
+    "cause": "cause",
+    "detail": "detail",
+    "title": "title",
+    "uuid": "uuid",
+    "code": 1200
+}
+###
+
+###
+@api {post} /api/private/v2/balances/transfer/request/pin Create pin code for transfer from bank account to trading account
+@apiName  Create pin code for transfer from bank account to trading account
+@apiVersion 0.0.1
+@apiGroup Qubera
+@apiUse Exrates
+@apiUse ApiJSON
+
+@apiExample {curl} Example usage:
+ curl -X POST \
+  http://localhost:8080/api/private/v2/balances/transfer/request/pin \
+  -H 'Exrates-rest-token: $token' \
+  -d '{
+	"amount": 200,
+	"currencyName":"EUR",
+
+@apiSuccessExample {json} Success-Response:
+HTTP/1.1 201 Created
+
+@apiErrorExample {json} Error-Response:
+HTTP/1.1 400 OK
+{
+    "url": "url",
+    "cause": "cause",
+    "detail": "detail",
+    "title": "title",
+    "uuid": "uuid",
+    "code": 1200
+}
+###
