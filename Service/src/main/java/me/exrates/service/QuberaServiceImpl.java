@@ -345,7 +345,7 @@ public class QuberaServiceImpl implements QuberaService {
             throw new NgDashboardException(messageError, Constants.ErrorApi.QUBERA_NOT_ENOUGH_MONEY_FOR_PAYMENT);
         }
 
-        QuberaRequestPaymentShortDto request = QuberaRequestPaymentShortDto.of(externalPaymentDto, account);;
+        QuberaRequestPaymentShortDto request = QuberaRequestPaymentShortDto.of(externalPaymentDto, account);
 
         return kycHttpClient.createExternalPayment(request);
     }

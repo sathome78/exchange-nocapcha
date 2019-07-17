@@ -6,11 +6,13 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.Currency;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
+import me.exrates.model.User;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestParamsDto;
 import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 import me.exrates.model.dto.ngDto.RefillPageDataDto;
 import me.exrates.model.enums.MerchantProcessType;
+import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
@@ -18,7 +20,9 @@ import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderExceptio
 import me.exrates.model.ngExceptions.NgCurrencyNotFoundException;
 import me.exrates.model.ngExceptions.NgRefillException;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
+import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.service.CheckUserAuthority;
+import me.exrates.security.service.SecureService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.GtagRefillService;
 import me.exrates.service.InputOutputService;
@@ -31,8 +35,6 @@ import me.exrates.service.exception.MerchantNotFoundException;
 import me.exrates.service.exception.MerchantServiceNotFoundException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
-import me.exrates.service.merchantStrategy.MerchantServiceContext;
-import me.exrates.service.userOperation.UserOperationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,9 +86,8 @@ public class NgRefillController {
     private final MessageSource messageSource;
     private final RefillService refillService;
     private final UserService userService;
-    private final UserOperationService userOperationService;
-    private final MerchantServiceContext merchantServiceContext;
     private final QuberaService quberaService;
+    private final SecureService secureService;
 
     private final GtagRefillService gtagRefillService;
 
@@ -97,9 +98,8 @@ public class NgRefillController {
                               MerchantService merchantService,
                               MessageSource messageSource,
                               RefillService refillService,
-                              UserOperationService userOperationService,
-                              MerchantServiceContext merchantServiceContext,
                               QuberaService quberaService,
+                              SecureService secureService,
                               GtagRefillService gtagRefillService) {
         this.currencyService = currencyService;
         this.inputOutputService = inputOutputService;
@@ -107,8 +107,7 @@ public class NgRefillController {
         this.merchantService = merchantService;
         this.messageSource = messageSource;
         this.refillService = refillService;
-        this.userOperationService = userOperationService;
-        this.merchantServiceContext = merchantServiceContext;
+        this.secureService = secureService;
         this.quberaService = quberaService;
         this.gtagRefillService = gtagRefillService;
     }
@@ -270,6 +269,11 @@ public class NgRefillController {
 
         try {
             if (merchantService.findById(request.getMerchantId()).getName().equalsIgnoreCase("Qubera")) {
+                if (!userService.checkPin(request.getUserEmail(), requestParamsDto.getPin(), NotificationMessageEventEnum.TRANSFER)) {
+                    User user = userService.findByEmail(request.getUserEmail());
+                    secureService.sendTransferPinCode(user, requestParamsDto.getSum().toPlainString(), request.getCurrencyName());
+                    throw new IncorrectPinException("Incorrect pin: " + requestParamsDto.getPin());
+                }
                 Map<String, Object> res = new HashMap<>();
                 quberaService.refill(request).forEach((key, value) -> res.put(key, key));
                 return ResponseEntity.ok(res);

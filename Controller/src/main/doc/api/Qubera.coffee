@@ -199,7 +199,8 @@ HTTP/1.1 400 OK
     "sum":200.0,
     "destination":"description",
     "merchantImage":70,
-    "operationType":"INPUT"
+    "operationType":"INPUT",
+    "pin": "3432432
 }'
 
 @apiParam {String} sum - for example: 10 or 10.0 or 10.00
@@ -208,6 +209,7 @@ HTTP/1.1 400 OK
 @apiParam {Integer} merchantImage - merchant image id
 @apiParam {String} destination
 @apiParam {String} operationType - INPUT, OUTPUT
+@apiParam {String} pin - pin code from transfer request
 
 @apiSuccessExample {json} Success-Response:
 HTTP/1.1 200 OK
