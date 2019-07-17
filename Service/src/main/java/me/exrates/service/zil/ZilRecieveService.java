@@ -1,32 +1,52 @@
 package me.exrates.service.zil;
 
-import com.firestack.laksaj.account.Wallet;
-import com.firestack.laksaj.blockchain.TxBlock;
 import com.firestack.laksaj.crypto.KeyTools;
-import com.firestack.laksaj.crypto.Schnorr;
 import com.firestack.laksaj.exception.ZilliqaAPIException;
 import com.firestack.laksaj.jsonrpc.HttpProvider;
 import com.firestack.laksaj.jsonrpc.Rep;
 import com.firestack.laksaj.transaction.Transaction;
 import com.firestack.laksaj.utils.Bech32;
 import com.google.gson.Gson;
-import org.web3j.crypto.ECKeyPair;
+import me.exrates.model.Currency;
+import me.exrates.model.Merchant;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.RefillService;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ZilRecieveService {
 
+    private static final String CURRENCY_NAME = "ZIL";
+    private static final int CONFIRMATIONS = 0;
     private static HttpProvider client;
-    private static final int CONFIRMATIONS = 20;
+
+    @Autowired
+    private RefillService refillService;
+    @Autowired
+    private ZilService zilService;
+    @Autowired
+    private MerchantService merchantService;
+    @Autowired
+    private CurrencyService currencyService;
+
+    private Merchant merchant;
+    private Currency currency;
 
     @PostConstruct
     private void init(){
         client = new HttpProvider("https://api.zilliqa.com/");
+        currency = currencyService.findByName(CURRENCY_NAME);
+        merchant = merchantService.findByName(CURRENCY_NAME);
     }
 
     public static String generatePrivateKey(){
@@ -61,61 +81,66 @@ public class ZilRecieveService {
         ZilRecieveService zilRecieveService = new ZilRecieveService();
         zilRecieveService.init();
 
-        zilRecieveService.checkRefills();
-        Rep<TxBlock> txBlock = client.getLatestTxBlock();
-        System.out.println(new Gson().toJson(txBlock));
-        Rep<List<List<String>>> transactionList = client.getTransactionsForTxBlock("172666");
-        transactionList.getResult().forEach(list -> {
-            System.out.println(list);
-                    if (list.contains("05049b0ad4c6411dd5208651c1b191dae8245e9a1d14e640368312375eaa2a5c")) {
-                        System.out.println("Contains");
-                    }}
-            );
-//       Rep<List<List<String>>> transactionList = client.getTransactionsForTxBlock("168406");
-//        System.out.println(new Gson().toJson(transactionList));
-//        Rep<Transaction> transaction = client.getTransaction("9a76aa00a93185ea7d20ae0225ca8ce34bbfcc26ac589303ec6563702cd83c4c");
-//        System.out.println(new Gson().toJson(transaction));
-//        Rep<TxBlock> txBlock = client.getTxBlock("160590");
+        Rep<List<List<String>>> blockTransactions = client.getTransactionsForTxBlock(String.valueOf(172776));
+        List<List<String>> transactions = blockTransactions.getResult();
+//        zilRecieveService.checkRefills();
+        Rep<Transaction> transaction = client.getTransaction("09d6c29d7609b894874d3eae50b7b5b5f5d5005babd5c40bcb4318c2ba638657");
+        System.out.println(new Gson().toJson(transaction));
+//        System.out.println(Bech32.toBech32Address("796aa72203e1c10d000b8282378d90e0f8afb5f7"));
+//        System.out.println(Bech32.toBech32Address("3b4f22cdc93294dff474b37ca2a19e8f02d99aea"));
 
-//        Rep<Transaction> transaction = client.getTransaction("6b7094293e2991c1d4865e825bfdd59997d5169a6e3e58b7ed88f7d9aa00cc0b");
-//        System.out.println(new Gson().toJson(transaction));
     }
 
-    private void checkRefills(){
-        int lastblock = 200000;//getLastBaseBlock();
+    private void checkRefills() throws IOException, ZilliqaAPIException {
+        int lastblock = 172780;//getLastBaseBlock();
         int blockchainHeight = getBlockchainHeigh();
+        List<String> listOfAddress = refillService.getListOfValidAddressByMerchantIdAndCurrency(merchant.getId(), currency.getId());
 
         while (lastblock < blockchainHeight - CONFIRMATIONS){
-            Rep<List<List<String>>> transactionList = null;
-            try {
-                transactionList = client.getTransactionsForTxBlock(String.valueOf(++lastblock));
-            } catch (IOException e) {
-                e.printStackTrace();
+            List<List<String>> transactions = getTransactionsList(++lastblock);
+            if (transactions != null){
+                transactions.forEach(list -> {
+                    for (String hash: list) {
+                        try {
+                            Transaction transaction = client.getTransaction(hash).getResult();
+                            String address = Bech32.toBech32Address(transaction.getToAddr());
+
+                            //TODO check method
+                            if (listOfAddress.contains(address)){
+                                processTransaction(transaction);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
             }
-
-            saveLastBlock(7);
+            saveLastBlock(lastblock);
         }
-        System.out.println(lastblock + "    " + blockchainHeight);
+    }
 
+    void processTransaction(Transaction transaction) throws RefillRequestAppropriateNotFoundException {
+        Map<String, String> param = new HashMap<String, String>();
+            param.put("","");
+
+            zilService.processPayment(param);
     }
 
     private int getLastBaseBlock(){
         return 0;
     }
 
-    private void getTxBlock(){
-
+    private List<List<String>> getTransactionsList(int lastblock) throws IOException {
+        Rep<List<List<String>>> blockTransactions = client.getTransactionsForTxBlock(String.valueOf(lastblock));
+        List<List<String>> transactions = blockTransactions.getResult();
+        return transactions;
     }
 
-    private int getBlockchainHeigh(){
+    private int getBlockchainHeigh() throws IOException, ZilliqaAPIException {
         Rep<String> numTxBlocks = null;
-        try {
+
             numTxBlocks = client.getNumTxBlocks();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ZilliqaAPIException e) {
-            e.printStackTrace();
-        }
+
         return Integer.valueOf(numTxBlocks.getResult());
     }
 
