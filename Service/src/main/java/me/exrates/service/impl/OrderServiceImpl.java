@@ -618,10 +618,10 @@ public class OrderServiceImpl implements OrderService {
 
     private void validateExrate(OrderCreateDto dto,  Map<String, Object> errors) {
         BigDecimal lastRate = new BigDecimal(exchangeRatesHolder.getOne(dto.getCurrencyPair().getId()).getLastOrderRate());
-        BigDecimal percentsPart = lastRate.multiply(exrateDeviationPercent).divide(BigDecimal.valueOf(100), 8, RoundingMode.HALF_UP);
-        BigDecimal lowestRate = lastRate.subtract(percentsPart);
-        BigDecimal highestRate = lastRate.add(percentsPart);
-        if (dto.getExchangeRate().compareTo(lowestRate) < 0 || dto.getExchangeRate().compareTo(highestRate) > 0) {
+        BigDecimal bound = lastRate.multiply(exrateDeviationPercent).divide(BigDecimal.valueOf(100), 8, RoundingMode.HALF_UP);
+        BigDecimal delta = dto.getExchangeRate().subtract(lastRate).abs();
+
+        if (delta.compareTo(bound) > 0) {
             errors.put("exrate_" + errors.size(), "order.invalid_rate");
         }
     }
