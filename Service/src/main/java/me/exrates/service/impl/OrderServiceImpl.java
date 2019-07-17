@@ -137,8 +137,10 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -195,8 +197,13 @@ import static me.exrates.service.util.CollectionUtil.isEmpty;
 
 @Log4j2
 @Service
+@PropertySource("classpath:/orders.properties")
 public class OrderServiceImpl implements OrderService {
 
+    @Value("${orders.max-exrate-deviation-percent}")
+    private BigDecimal exrateDeviationPercent;
+    private static final BigDecimal percentHighMultiplier = BigDecimal.valueOf(1.2);
+    private static final BigDecimal percentLowMultiplier = BigDecimal.valueOf(0.8);
     public static final String BUY = "BUY";
     public static final String SELL = "SELL";
     public static final String SCOPE = "ALL";
@@ -451,6 +458,8 @@ public class OrderServiceImpl implements OrderService {
             errors.put("exrate_" + errors.size(), "order.fillfield");
         }
 
+        validateExrate(orderCreateDto, errors);
+
         CurrencyPairLimitDto currencyPairLimit;
         if (!fromDemo) {
             currencyPairLimit = currencyService.findLimitForRoleByCurrencyPairAndType(orderCreateDto.getCurrencyPair().getId(),
@@ -539,6 +548,8 @@ public class OrderServiceImpl implements OrderService {
             errors.put("exrate_" + errors.size(), "order.fillfield");
         }
 
+        validateExrate(orderCreateDto, errors);
+
         CurrencyPairLimitDto currencyPairLimit = currencyService.findLimitForRoleByCurrencyPairAndType(orderCreateDto.getCurrencyPair().getId(),
                 orderCreateDto.getOperationType());
         if (orderCreateDto.getOrderBaseType() != null && orderCreateDto.getOrderBaseType().equals(OrderBaseType.STOP_LIMIT)) {
@@ -605,6 +616,16 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         return orderValidationDto;
+    }
+
+    private void validateExrate(OrderCreateDto dto,  Map<String, Object> errors) {
+        BigDecimal lastRate = new BigDecimal(exchangeRatesHolder.getOne(dto.getCurrencyPair().getId()).getLastOrderRate());
+        BigDecimal percentsPart = lastRate.multiply(exrateDeviationPercent).divide(BigDecimal.valueOf(100), 8, RoundingMode.HALF_UP);
+        BigDecimal lowestRate = lastRate.subtract(percentsPart);
+        BigDecimal highestRate = lastRate.add(percentsPart);
+        if (dto.getExchangeRate().compareTo(lowestRate) < 0 || dto.getExchangeRate().compareTo(highestRate) > 0) {
+            errors.put("exrate_" + errors.size(), "order.invalid_rate");
+        }
     }
 
     private void validateIcoOrder(Map<String, Object> errors, Map<String, Object[]> errorParams, OrderCreateDto orderCreateDto) {
