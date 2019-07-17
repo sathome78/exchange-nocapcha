@@ -92,6 +92,7 @@ public class ZilRecieveService {
                     }
                 });
             }
+            //todo Проверить вынести сохранение в базу номер блока после цикла
             saveLastBlock(lastblock);
         }
     }
