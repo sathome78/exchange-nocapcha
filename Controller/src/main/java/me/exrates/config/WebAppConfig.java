@@ -636,7 +636,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Conditional(MonolitConditional.class)
     public EthereumCommonService cloService() {
         return new EthereumCommonServiceImpl("merchants/callisto.properties",
-                "CLO", "CLO", 40);
+                "CLO", "CLO", 300);
     }
 
     @Bean(name = "b2gServiceImpl")

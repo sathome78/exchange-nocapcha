@@ -122,7 +122,7 @@ public class UserDaoImpl implements UserDao {
             user.setNickname(resultSet.getString("nickname"));
             user.setEmail(resultSet.getString("email"));
             user.setPassword(resultSet.getString("password"));
-            user.setRegdate(resultSet.getDate("regdate"));
+            user.setRegdate(resultSet.getDate("regdate").toLocalDate());
             user.setPhone(resultSet.getString("phone"));
             user.setUserStatus(UserStatus.values()[resultSet.getInt("status") - 1]);
             user.setRole(UserRole.valueOf(resultSet.getString("role_name")));
@@ -144,7 +144,7 @@ public class UserDaoImpl implements UserDao {
             user.setNickname(resultSet.getString("nickname"));
             user.setEmail(resultSet.getString("email"));
             user.setPassword(resultSet.getString("password"));
-            user.setRegdate(resultSet.getDate("regdate"));
+            user.setRegdate(resultSet.getDate("regdate").toLocalDate());
             user.setPhone(resultSet.getString("phone"));
             user.setUserStatus(UserStatus.values()[resultSet.getInt("status") - 1]);
             user.setFinpassword(resultSet.getString("finpassword"));
@@ -1547,5 +1547,16 @@ public class UserDaoImpl implements UserDao {
         final Map<String, Object> params = Collections.singletonMap("user_email", userEmail);
 
         return slaveTemplate.queryForObject(sql, params, String.class);
+    }
+
+    @Override
+    public boolean updateCountryCode(String countryCode, String userEmail) {
+        final String sql = "UPDATE USER u SET u.country = :code WHERE u.email = :email";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("code", countryCode);
+            put("email", userEmail);
+        }};
+        return masterTemplate.update(sql, params) > 0;
     }
 }
