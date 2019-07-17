@@ -1,6 +1,5 @@
 package me.exrates.service.zil;
 
-import com.firestack.laksaj.crypto.KeyTools;
 import com.firestack.laksaj.exception.ZilliqaAPIException;
 import com.firestack.laksaj.jsonrpc.HttpProvider;
 import com.firestack.laksaj.jsonrpc.Rep;
@@ -9,21 +8,23 @@ import com.firestack.laksaj.utils.Bech32;
 import com.google.gson.Gson;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Service
+@Conditional(MonolitConditional.class)
 public class ZilRecieveService {
 
     private static final String CURRENCY_NAME = "ZIL";
@@ -45,37 +46,11 @@ public class ZilRecieveService {
     @PostConstruct
     private void init(){
         client = new HttpProvider("https://api.zilliqa.com/");
-        currency = currencyService.findByName(CURRENCY_NAME);
-        merchant = merchantService.findByName(CURRENCY_NAME);
+//        currency = currencyService.findByName(CURRENCY_NAME);
+//        merchant = merchantService.findByName(CURRENCY_NAME);
     }
 
-    public static String generatePrivateKey(){
-        String privKey = "";
-        try {
-            privKey = KeyTools.generatePrivateKey();
-        } catch (InvalidAlgorithmParameterException e) {
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (NoSuchProviderException e) {
-            e.printStackTrace();
-        }
-        return privKey;
-    }
 
-    public static String getPublicKeyFromPrivateKey(String privKey){
-        return KeyTools.getPublicKeyFromPrivateKey(privKey, true);
-    }
-
-    public static String getAddressFromPrivateKey(String privKey){
-        String address = KeyTools.getAddressFromPrivateKey(privKey);
-        try {
-            return Bech32.toBech32Address(address);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "";
-    }
 
     public static void main(String[] args) throws Exception {
         ZilRecieveService zilRecieveService = new ZilRecieveService();
@@ -83,6 +58,8 @@ public class ZilRecieveService {
 
         Rep<List<List<String>>> blockTransactions = client.getTransactionsForTxBlock(String.valueOf(172776));
         List<List<String>> transactions = blockTransactions.getResult();
+        Rep<String> numTxBlocks = client.getNumTxBlocks();
+        System.out.println(new Gson().toJson(numTxBlocks));
 //        zilRecieveService.checkRefills();
         Rep<Transaction> transaction = client.getTransaction("09d6c29d7609b894874d3eae50b7b5b5f5d5005babd5c40bcb4318c2ba638657");
         System.out.println(new Gson().toJson(transaction));

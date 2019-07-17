@@ -16,3 +16,7 @@ public class CurrencyPairConverter implements Converter<String, CurrencyPair> {
         return new Gson().fromJson(s, CurrencyPair.class);
     }
 }
+
+
+
+

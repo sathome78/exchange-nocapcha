@@ -1802,16 +1802,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "MCO", true, ExConvert.Unit.AIWEI);
     }
 
-    @Bean(name = "zilServiceImpl")
-    @Conditional(MonolitConditional.class)
-    public EthTokenService zilService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x05f4a42e251f2d52b8ed15e9fedaacfcef1fad27");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "ZIL",
-                "ZIL", true, ExConvert.Unit.SZABO);
-    }
+//    @Bean(name = "zilServiceImpl")
+//    @Conditional(MonolitConditional.class)
+//    public EthTokenService zilService() {
+//        List<String> tokensList = new ArrayList<>();
+//        tokensList.add("0x05f4a42e251f2d52b8ed15e9fedaacfcef1fad27");
+//        return new EthTokenServiceImpl(
+//                tokensList,
+//                "ZIL",
+//                "ZIL", true, ExConvert.Unit.SZABO);
+//    }
 
     @Bean(name = "manaServiceImpl")
     @Conditional(MonolitConditional.class)

@@ -45,13 +45,13 @@ public class ZilServiceImpl implements ZilService{
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
-        String privKey = ZilRecieveService.generatePrivateKey();
-        String address = ZilRecieveService.getAddressFromPrivateKey(privKey);
+        String privKey = ZilCurrencyServiceImpl.generatePrivateKey();
+        String address = ZilCurrencyServiceImpl.getAddressFromPrivateKey(privKey);
         String message = messageSource.getMessage("merchants.refill.aisi",
                 new Object[] {address}, request.getLocale());
         return new HashMap<String, String>(){{
             put("privKey", privKey);
-            put("pubKey", ZilRecieveService.getPublicKeyFromPrivateKey(privKey));
+            put("pubKey", ZilCurrencyServiceImpl.getPublicKeyFromPrivateKey(privKey));
             put("address", address);
             put("message", message);
             put("qr", address);
