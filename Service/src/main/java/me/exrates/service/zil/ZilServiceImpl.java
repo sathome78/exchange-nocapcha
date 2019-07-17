@@ -25,8 +25,6 @@ public class ZilServiceImpl implements ZilService{
     private static final String CURRENCY_NAME = "ZIL";
     private Merchant merchant;
     private Currency currency;
-    @Autowired
-    private ZilRecieveService zilRecieveService;
 
     @Autowired
     private CurrencyService currencyService;
@@ -47,7 +45,7 @@ public class ZilServiceImpl implements ZilService{
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
-        String address = zilRecieveService.generateNewAddress();
+        String address = ZilRecieveService.generateNewAddress();
         String message = messageSource.getMessage("merchants.refill.aisi",
                 new Object[] {address}, request.getLocale());
         return new HashMap<String, String>(){{

@@ -58,8 +58,8 @@ public class ZilRecieveService {
 //        schnorr.generateKeyPair();
     }
 
-    String generateNewAddress(){
-        String privKey = null;
+    static String generateNewAddress(){
+        String privKey = "";
         try {
             privKey = KeyTools.generatePrivateKey();
         } catch (InvalidAlgorithmParameterException e) {
