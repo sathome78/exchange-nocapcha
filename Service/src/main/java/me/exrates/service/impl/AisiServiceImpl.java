@@ -65,8 +65,6 @@ public class AisiServiceImpl implements AisiService {
                 new Object[] {address}, request.getLocale());
         return new HashMap<String, String>(){{
             put("address", address);
-            put("privKey", String.valueOf(credentials.getEcKeyPair().getPrivateKey()));
-            put("pubKey", String.valueOf(credentials.getEcKeyPair().getPublicKey()));
             put("message", message);
             put("qr", address);
         }};
