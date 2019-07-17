@@ -1,8 +1,10 @@
 package me.exrates.service.zil;
 
+import lombok.Synchronized;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.condition.MonolitConditional;
+import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.CurrencyService;
@@ -15,9 +17,11 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
+//TODO add log
 @Service
 @Conditional(MonolitConditional.class)
 public class ZilServiceImpl implements ZilService{
@@ -58,9 +62,28 @@ public class ZilServiceImpl implements ZilService{
         }};
     }
 
+    @Synchronized
     @Override
     public void processPayment(Map<String, String> params) {
+        String address = params.get("address");
+        String hash = params.get("hash");
+//        if (checkTransactionForDuplicate(hash)) {
+//            log.warn("*** zil *** transaction {} already accepted", hash);
+//            return;
+//        }
+        BigDecimal amount = new BigDecimal(params.get("amount"));
+        RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+                .address(address)
+                .merchantId(merchant.getId())
+                .currencyId(currency.getId())
+                .amount(amount)
+                .merchantTransactionId(hash)
+                .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
+                .build();
+        //TODO make new transaction
+        ZilCurrencyServiceImpl.createTransaction();
 
+        refillService.createAndAutoAcceptRefillRequest(requestAcceptDto);
     }
 
     @Override

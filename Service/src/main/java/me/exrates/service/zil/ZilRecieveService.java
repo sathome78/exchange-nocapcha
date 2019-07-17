@@ -43,6 +43,7 @@ public class ZilRecieveService {
     private Merchant merchant;
     private Currency currency;
 
+    //TODO add scheduler
     @PostConstruct
     private void init(){
         client = new HttpProvider("https://api.zilliqa.com/");
@@ -81,7 +82,6 @@ public class ZilRecieveService {
                         try {
                             Transaction transaction = client.getTransaction(hash).getResult();
                             String address = Bech32.toBech32Address(transaction.getToAddr());
-
                             //TODO check method
                             if (listOfAddress.contains(address)){
                                 processTransaction(transaction);
@@ -96,32 +96,27 @@ public class ZilRecieveService {
         }
     }
 
-    void processTransaction(Transaction transaction) throws RefillRequestAppropriateNotFoundException {
-        Map<String, String> param = new HashMap<String, String>();
-            param.put("","");
-
-            zilService.processPayment(param);
-    }
-
     private int getLastBaseBlock(){
         return 0;
     }
 
-    private List<List<String>> getTransactionsList(int lastblock) throws IOException {
-        Rep<List<List<String>>> blockTransactions = client.getTransactionsForTxBlock(String.valueOf(lastblock));
-        List<List<String>> transactions = blockTransactions.getResult();
-        return transactions;
-    }
-
     private int getBlockchainHeigh() throws IOException, ZilliqaAPIException {
-        Rep<String> numTxBlocks = null;
-
-            numTxBlocks = client.getNumTxBlocks();
-
+        Rep<String> numTxBlocks = client.getNumTxBlocks();
         return Integer.valueOf(numTxBlocks.getResult());
     }
 
-    private void saveLastBlock(int lastBlock){
+    private List<List<String>> getTransactionsList(int block) throws IOException {
+        Rep<List<List<String>>> blockTransactions = client.getTransactionsForTxBlock(String.valueOf(block));
+        return blockTransactions.getResult();
+    }
 
+    private void processTransaction(Transaction transaction) throws RefillRequestAppropriateNotFoundException {
+        Map<String, String> param = new HashMap<String, String>();
+        param.put("","");
+
+        zilService.processPayment(param);
+    }
+
+    private void saveLastBlock(int lastBlock){
     }
 }
