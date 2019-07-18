@@ -3,9 +3,11 @@ package me.exrates.service.zil;
 import com.firestack.laksaj.account.Wallet;
 import com.firestack.laksaj.crypto.KeyTools;
 import com.firestack.laksaj.jsonrpc.HttpProvider;
+import com.firestack.laksaj.jsonrpc.Rep;
 import com.firestack.laksaj.transaction.Transaction;
 import com.firestack.laksaj.transaction.TransactionFactory;
 import com.firestack.laksaj.utils.Bech32;
+import com.google.gson.Gson;
 import me.exrates.model.condition.MonolitConditional;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,8 @@ import static com.firestack.laksaj.account.Wallet.pack;
 @Service
 @Conditional(MonolitConditional.class)
 public class ZilCurrencyServiceImpl implements ZilCurrencyService{
+
+    private static final String DEFAULT_GAS_PRISE = "1000000000";
 
     public static void main(String[] args) {
         ZilCurrencyServiceImpl zilCurrencyService = new ZilCurrencyServiceImpl();
@@ -56,6 +60,11 @@ public class ZilCurrencyServiceImpl implements ZilCurrencyService{
     }
 
     public String createTransaction(Map<String, String> params) throws Exception {
+        String address = params.get("address");
+        String amount = params.get("amount");
+        String privKey = "";
+        String pubKey = "";
+
         Wallet wallet = new Wallet();
         wallet.addByPrivateKey("b80c60093b3cacdf174cb8e2f2f403e8f178a241da3c2137859da8a206479916");
         Transaction transaction = Transaction.builder()
@@ -63,7 +72,7 @@ public class ZilCurrencyServiceImpl implements ZilCurrencyService{
                 .toAddr("zil1rk0jzyetaur8uwhqdgdenrp8h4fakq87tl0f8l".toLowerCase())
                 .senderPubKey("02783C6C7946DE9D1350297CF40BED9C14282BBAC4B9496B896227B9A3AC8635CC".toLowerCase())
                 .amount("100000000000")
-                .gasPrice("1000000000")
+                .gasPrice(DEFAULT_GAS_PRISE)
                 .gasLimit("1")
                 .code("")
                 .data("")
@@ -73,7 +82,12 @@ public class ZilCurrencyServiceImpl implements ZilCurrencyService{
 
         // Send a transaction to the network
         HttpProvider.CreateTxResult result = TransactionFactory.createTransaction(transaction);
-        System.out.println(result);
-        return "";
+        String tranHash = result.getTranID();
+        System.out.println(tranHash);
+
+//        Rep<Transaction> transaction2 = client.getTransaction("5975154c84dce12f7055cba47fb81c77a661c3575f0c7aafc25a2f4b4f4f78fb");
+//        System.out.println(new Gson().toJson(transaction2));
+
+        return tranHash;
     }
 }

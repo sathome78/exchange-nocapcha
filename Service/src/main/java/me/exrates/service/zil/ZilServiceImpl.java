@@ -71,6 +71,7 @@ public class ZilServiceImpl implements ZilService{
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         String address = params.get("address");
         String hash = params.get("hash");
+        //scaled amount
         BigDecimal amount = new BigDecimal(params.get("amount"));
 //        long fee = params.get
 
@@ -79,7 +80,11 @@ public class ZilServiceImpl implements ZilService{
             return;
         }
 
-        zilCurrencyService.createTransaction(params);
+        try {
+            zilCurrencyService.createTransaction(params);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)

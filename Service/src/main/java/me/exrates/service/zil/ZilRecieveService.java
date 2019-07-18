@@ -69,13 +69,8 @@ public class ZilRecieveService {
         zilRecieveService.init();
 //        zilRecieveService.checkRefills();
 
-
-//        System.out.println(Bech32.fromBech32Address("zil1rk0jzyetaur8uwhqdgdenrp8h4fakq87tl0f8l"));
-//        Rep<List<List<String>>> transactionList = client.getTransactionsForTxBlock("173651");
-//        System.out.println(new Gson().toJson(transactionList));
-//
-        Rep<Transaction> transaction = client.getTransaction("d2869864722119d4078d0628a7a1597d48c63d9319fe09573f3b561ccc6046ea");
-        System.out.println(new Gson().toJson(transaction));
+        Rep<Transaction> transaction2 = client.getTransaction("5975154c84dce12f7055cba47fb81c77a661c3575f0c7aafc25a2f4b4f4f78fb");
+        System.out.println(new Gson().toJson(transaction2));
     }
 
     private void checkRefills() throws IOException, ZilliqaAPIException {
