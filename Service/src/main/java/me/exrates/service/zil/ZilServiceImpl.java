@@ -10,11 +10,13 @@ import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
@@ -40,6 +42,8 @@ public class ZilServiceImpl implements ZilService{
     private MessageSource messageSource;
     @Autowired
     private WithdrawUtils withdrawUtils;
+    @Autowired
+    private ZilCurrencyService zilCurrencyService;
 
     @PostConstruct
     public void init() {
@@ -49,13 +53,13 @@ public class ZilServiceImpl implements ZilService{
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
-        String privKey = ZilCurrencyServiceImpl.generatePrivateKey();
-        String address = ZilCurrencyServiceImpl.getAddressFromPrivateKey(privKey);
-        String message = messageSource.getMessage("merchants.refill.aisi",
+        String privKey = zilCurrencyService.generatePrivateKey();
+        String address = zilCurrencyService.getAddressFromPrivateKey(privKey);
+        String message = messageSource.getMessage("merchants.refill.xlm",
                 new Object[] {address}, request.getLocale());
         return new HashMap<String, String>(){{
             put("privKey", privKey);
-            put("pubKey", ZilCurrencyServiceImpl.getPublicKeyFromPrivateKey(privKey));
+            put("pubKey", zilCurrencyService.getPublicKeyFromPrivateKey(privKey));
             put("address", address);
             put("message", message);
             put("qr", address);
@@ -64,14 +68,19 @@ public class ZilServiceImpl implements ZilService{
 
     @Synchronized
     @Override
-    public void processPayment(Map<String, String> params) {
+    public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         String address = params.get("address");
         String hash = params.get("hash");
-//        if (checkTransactionForDuplicate(hash)) {
-//            log.warn("*** zil *** transaction {} already accepted", hash);
-//            return;
-//        }
         BigDecimal amount = new BigDecimal(params.get("amount"));
+//        long fee = params.get
+
+        if (checkTransactionForDuplicate(hash)) {
+//            log.warn("*** zil *** transaction {} already accepted", hash);
+            return;
+        }
+
+        zilCurrencyService.createTransaction(params);
+
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
                 .merchantId(merchant.getId())
@@ -80,19 +89,21 @@ public class ZilServiceImpl implements ZilService{
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
-        //TODO make new transaction
-        ZilCurrencyServiceImpl.createTransaction();
 
         refillService.createAndAutoAcceptRefillRequest(requestAcceptDto);
     }
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
-        return null;
+        throw new RuntimeException("Not supported");
     }
 
     @Override
     public boolean isValidDestinationAddress(String address) {
-        return false;
+        return withdrawUtils.isValidDestinationAddress(address);
+    }
+
+    private boolean checkTransactionForDuplicate(String hash){
+        return StringUtils.isEmpty(hash) || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currency.getId(), hash).isPresent();
     }
 }

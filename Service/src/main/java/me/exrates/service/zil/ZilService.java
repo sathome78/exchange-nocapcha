@@ -1,7 +1,10 @@
 package me.exrates.service.zil;
 
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
+
+import java.util.Map;
 
 public interface ZilService extends IRefillable, IWithdrawable {
 
@@ -39,4 +42,6 @@ public interface ZilService extends IRefillable, IWithdrawable {
     default Boolean withdrawTransferringConfirmNeeded() {
         return false;
     }
+
+    void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException;
 }
