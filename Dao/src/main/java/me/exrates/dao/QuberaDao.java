@@ -19,5 +19,11 @@ public interface QuberaDao {
 
     String getAccountByUserEmail(String email);
 
-    QuberaUserData getUserDataByUserId(int userId);
+    QuberaUserData getUserDataByUserIdAndCurrencyId(int userId, int currencyId);
+
+    QuberaUserData getUserDataByUserEmail(String email);
+
+    boolean updateUserData(QuberaUserData quberaUserData);
+
+    QuberaUserData getUserDataByReference(String reference);
 }

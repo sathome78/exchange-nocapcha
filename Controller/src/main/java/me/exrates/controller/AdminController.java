@@ -115,6 +115,7 @@ import me.exrates.service.exception.process.OrderCancellingException;
 import me.exrates.service.exception.process.OrderCreationException;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
+import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
 import me.exrates.service.omni.OmniService;
@@ -276,6 +277,8 @@ public class AdminController {
     private OmniService omniService;
     @Autowired
     private UsdxService usdxService;
+    @Autowired
+    private G2faService g2faService;
 
 
     @Autowired
@@ -602,6 +605,7 @@ public class AdminController {
         }
 
         model.addObject("user", user);
+        model.addObject("user2fa", g2faService.isGoogleAuthenticatorEnable(user.getId()));
         model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
         model.addObject("currencies", currencyService.findAllCurrenciesWithHidden());
         model.addObject("currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL));
