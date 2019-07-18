@@ -10,12 +10,17 @@ import me.exrates.model.dto.AccountCreateDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.model.dto.kyc.IdentityDataRequest;
+import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
+import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
 import me.exrates.model.dto.qubera.AccountInfoDto;
 import me.exrates.model.dto.qubera.ExternalPaymentDto;
+import me.exrates.model.dto.qubera.ExternalPaymentShortDto;
 import me.exrates.model.dto.qubera.PaymentRequestDto;
 import me.exrates.model.dto.qubera.QuberaPaymentInfoDto;
 import me.exrates.model.dto.qubera.QuberaRequestDto;
 import me.exrates.model.dto.qubera.ResponsePaymentDto;
+import me.exrates.model.dto.qubera.responses.ExternalPaymentResponseDto;
 import me.exrates.service.QuberaService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.properties.InOutProperties;
@@ -77,7 +82,7 @@ public class QuberaServiceMsImpl implements QuberaService {
     }
 
     @Override
-    public AccountQuberaResponseDto createAccount(AccountCreateDto accountCreateDto) {
+    public AccountQuberaResponseDto createAccount(String email) {
         return null;
     }
 
@@ -112,12 +117,7 @@ public class QuberaServiceMsImpl implements QuberaService {
     }
 
     @Override
-    public ResponsePaymentDto createExternalPayment(ExternalPaymentDto externalPaymentDto, String email) {
-        return null;
-    }
-
-    @Override
-    public String confirmExternalPayment(Integer paymentId) {
+    public ExternalPaymentResponseDto createExternalPayment(ExternalPaymentShortDto externalPaymentDto, String email) {
         return null;
     }
 
@@ -129,6 +129,26 @@ public class QuberaServiceMsImpl implements QuberaService {
     @Override
     public void sendNotification(QuberaRequestDto quberaRequestDto) {
 
+    }
+
+    @Override
+    public String getUserVerificationStatus(String email) {
+        return null;
+    }
+
+    @Override
+    public void processingCallBack(String referenceId, KycStatusResponseDto kycStatusResponseDto) {
+
+    }
+
+    @Override
+    public OnboardingResponseDto startVerificationProcessing(IdentityDataRequest identityDataRequest, String email) {
+        return null;
+    }
+
+    @Override
+    public boolean confirmExternalPayment(Integer paymentId) {
+        return false;
     }
 
     @Override
