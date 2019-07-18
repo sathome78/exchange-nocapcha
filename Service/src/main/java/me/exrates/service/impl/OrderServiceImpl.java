@@ -200,8 +200,8 @@ import static me.exrates.service.util.CollectionUtil.isEmpty;
 @PropertySource("classpath:/orders.properties")
 public class OrderServiceImpl implements OrderService {
 
-    @Value("#{BigDecimal.valueOf('${orders.max-exrate-deviation-percent}')}")
-    private BigDecimal exrateDeviationPercent;
+//    @Value("#{BigDecimal.valueOf('${orders.max-exrate-deviation-percent}')}")
+    public BigDecimal exrateDeviationPercent = BigDecimal.valueOf(20);
 
     public static final String BUY = "BUY";
     public static final String SELL = "SELL";
