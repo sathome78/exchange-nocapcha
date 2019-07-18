@@ -26,7 +26,7 @@ public class ExternalPaymentShortDto {
     private String amount;
     private String currencyCode;
 
-    private PaymentType type;
+    private String type;
 
     private String accountNumber;
     private String swift;
@@ -36,7 +36,7 @@ public class ExternalPaymentShortDto {
     private String countryCode;
 
     public enum PaymentType {
-        SWIFT("swirt"),
+        SWIFT("swift"),
         SEPA("sepa");
 
         private String type;
