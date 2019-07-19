@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,7 @@ public class ZilRecieveService {
 
     private static final String MERCHANT_NAME = "ZIL";
     private static final String LAST_BLOCK_PARAM = "LastScannedBlock";
-    private static final int CONFIRMATIONS = 10;
+    private static final int CONFIRMATIONS = 3;
 
 
     @Autowired
@@ -63,7 +64,7 @@ public class ZilRecieveService {
         client = new HttpProvider("https://api.zilliqa.com/");
         currency = currencyService.findByName(MERCHANT_NAME);
         merchant = merchantService.findByName(MERCHANT_NAME);
-        scheduler.scheduleAtFixedRate(this::checkRefills, 3, 2, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::checkRefills, 3, 3, TimeUnit.MINUTES);
     }
 
     private void checkRefills() {
@@ -99,7 +100,6 @@ public class ZilRecieveService {
                 });
             }
         }
-        //todo Проверить вынести сохранение в базу номер блока после цикла
         saveLastBlock(lastblock);
 
         transferToMainAccountJob();
@@ -143,8 +143,12 @@ public class ZilRecieveService {
         List<RefillRequestAddressDto> listRefillRequestAddressDto = refillService.findAllAddressesNeededToTransfer(merchant.getId(), currency.getId());
         listRefillRequestAddressDto.forEach(p->{
             try {
-                transferToMainAccount(p);
-                refillService.updateAddressNeedTransfer(p.getAddress(), merchant.getId(), currency.getId(), false);
+                BigDecimal amount = zilCurrencyService.getAmount(Bech32.fromBech32Address(p.getAddress()));
+                if (amount.toString().equals("0")){
+                    refillService.updateAddressNeedTransfer(p.getAddress(), merchant.getId(), currency.getId(), false);
+                } else {
+                    transferToMainAccount(p);
+                }
             } catch (Exception e) {
                 log.error(e);
             }

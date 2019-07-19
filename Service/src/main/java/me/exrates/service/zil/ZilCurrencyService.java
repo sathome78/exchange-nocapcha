@@ -13,6 +13,8 @@ public interface ZilCurrencyService {
 
     void createTransaction(RefillRequestAddressDto dto) throws Exception;
 
+    BigDecimal getAmount(String address) throws Exception;
+
     BigDecimal getFee();
 
     BigDecimal scaleAmountToZilFormat(BigDecimal amount);

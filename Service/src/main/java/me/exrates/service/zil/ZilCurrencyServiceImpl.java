@@ -95,11 +95,9 @@ public class ZilCurrencyServiceImpl implements ZilCurrencyService{
 
         // Send a transaction to the network
         HttpProvider.CreateTxResult result = TransactionFactory.createTransaction(transaction);
-        String tranHash = result.getTranID();
-        log.debug(tranHash);
     }
 
-    private BigDecimal getAmount(String address) throws Exception {
+    public BigDecimal getAmount(String address) throws Exception {
         Rep<HttpProvider.BalanceResult> balance = client.getBalance(address);
         return new BigDecimal(balance.getResult().getBalance());
     }
