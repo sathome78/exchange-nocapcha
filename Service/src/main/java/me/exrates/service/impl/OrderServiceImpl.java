@@ -457,7 +457,6 @@ public class OrderServiceImpl implements OrderService {
             errors.put("exrate_" + errors.size(), "order.fillfield");
         }
 
-        validateExrate(orderCreateDto, errors);
 
         CurrencyPairLimitDto currencyPairLimit;
         if (!fromDemo) {
@@ -547,7 +546,6 @@ public class OrderServiceImpl implements OrderService {
             errors.put("exrate_" + errors.size(), "order.fillfield");
         }
 
-        validateExrate(orderCreateDto, errors);
 
         CurrencyPairLimitDto currencyPairLimit = currencyService.findLimitForRoleByCurrencyPairAndType(orderCreateDto.getCurrencyPair().getId(),
                 orderCreateDto.getOperationType());
