@@ -1,7 +1,8 @@
 package me.exrates.service.zil;
 
-import java.security.NoSuchAlgorithmException;
-import java.util.Map;
+import me.exrates.model.dto.RefillRequestAddressDto;
+
+import java.math.BigDecimal;
 
 public interface ZilCurrencyService {
     String generatePrivateKey();
@@ -10,5 +11,9 @@ public interface ZilCurrencyService {
 
     String getAddressFromPrivateKey(String privKey);
 
-    String createTransaction(Map<String, String> params) throws Exception;
+    void createTransaction(RefillRequestAddressDto dto) throws Exception;
+
+    BigDecimal getFee();
+
+    BigDecimal scaleAmountToZilFormat(BigDecimal amount);
 }

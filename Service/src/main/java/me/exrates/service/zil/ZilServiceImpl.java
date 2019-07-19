@@ -1,6 +1,7 @@
 package me.exrates.service.zil;
 
 import lombok.Synchronized;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.condition.MonolitConditional;
@@ -23,7 +24,7 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
-//TODO add log
+@Log4j2(topic = "zil_log")
 @Service
 @Conditional(MonolitConditional.class)
 public class ZilServiceImpl implements ZilService{
@@ -71,26 +72,20 @@ public class ZilServiceImpl implements ZilService{
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         String address = params.get("address");
         String hash = params.get("hash");
-        //scaled amount
         BigDecimal amount = new BigDecimal(params.get("amount"));
-//        long fee = params.get
+        BigDecimal fee = zilCurrencyService.getFee();
+        BigDecimal scaledAmount = zilCurrencyService.scaleAmountToZilFormat(amount.subtract(fee));
 
         if (checkTransactionForDuplicate(hash)) {
-//            log.warn("*** zil *** transaction {} already accepted", hash);
+            log.warn("*** zil *** transaction {} already accepted", hash);
             return;
-        }
-
-        try {
-            zilCurrencyService.createTransaction(params);
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
                 .merchantId(merchant.getId())
                 .currencyId(currency.getId())
-                .amount(amount)
+                .amount(scaledAmount)
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();

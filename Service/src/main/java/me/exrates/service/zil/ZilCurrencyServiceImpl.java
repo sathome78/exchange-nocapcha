@@ -7,40 +7,46 @@ import com.firestack.laksaj.jsonrpc.Rep;
 import com.firestack.laksaj.transaction.Transaction;
 import com.firestack.laksaj.transaction.TransactionFactory;
 import com.firestack.laksaj.utils.Bech32;
-import com.google.gson.Gson;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MonolitConditional;
+import me.exrates.model.dto.RefillRequestAddressDto;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+import java.math.BigDecimal;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.util.Map;
 
 import static com.firestack.laksaj.account.Wallet.pack;
 
+@Log4j2
 @Service
 @Conditional(MonolitConditional.class)
 public class ZilCurrencyServiceImpl implements ZilCurrencyService{
 
-    private static final String DEFAULT_GAS_PRISE = "1000000000";
+    public static final String DEFAULT_GAS_PRISE = "1000000000";
+    private static final String DEFAULT_FACTOR = "1000000000000";
 
-    public static void main(String[] args) {
-        ZilCurrencyServiceImpl zilCurrencyService = new ZilCurrencyServiceImpl();
-//        System.out.println(zilCurrencyService.generatePrivateKey());
-        String pub = zilCurrencyService.getPublicKeyFromPrivateKey("b80c60093b3cacdf174cb8e2f2f403e8f178a241da3c2137859da8a206479916");
-        System.out.println(pub);
+    private static HttpProvider client;
+    private String mainAccount;
+
+    @PostConstruct
+    private void init(){
+        client = new HttpProvider("https://api.zilliqa.com/");
     }
+
     public String generatePrivateKey(){
         String privKey = "";
         try {
             privKey = KeyTools.generatePrivateKey();
         } catch (InvalidAlgorithmParameterException e) {
-            e.printStackTrace();
+            log.error(e);
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            log.error(e);
         } catch (NoSuchProviderException e) {
-            e.printStackTrace();
+            log.error(e);
         }
         return privKey;
     }
@@ -54,24 +60,26 @@ public class ZilCurrencyServiceImpl implements ZilCurrencyService{
         try {
             return Bech32.toBech32Address(address);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e);
         }
         return "";
     }
 
-    public String createTransaction(Map<String, String> params) throws Exception {
-        String address = params.get("address");
-        String amount = params.get("amount");
-        String privKey = "";
-        String pubKey = "";
+    public void createTransaction(RefillRequestAddressDto dto) throws Exception {
+        String privKey = dto.getPrivKey();
+        String pubKey = dto.getPubKey();
+
+        BigDecimal accountAmount = getAmount(Bech32.fromBech32Address(dto.getAddress()));
+        BigDecimal fee = getFee();
+        String amount = bigDecimalToTransactionString(accountAmount.subtract(fee));
 
         Wallet wallet = new Wallet();
-        wallet.addByPrivateKey("b80c60093b3cacdf174cb8e2f2f403e8f178a241da3c2137859da8a206479916");
+        wallet.addByPrivateKey(privKey);
         Transaction transaction = Transaction.builder()
                 .version(String.valueOf(pack(1, 1)))
-                .toAddr("zil1rk0jzyetaur8uwhqdgdenrp8h4fakq87tl0f8l".toLowerCase())
-                .senderPubKey("02783C6C7946DE9D1350297CF40BED9C14282BBAC4B9496B896227B9A3AC8635CC".toLowerCase())
-                .amount("100000000000")
+                .toAddr(mainAccount.toLowerCase())
+                .senderPubKey(pubKey.toLowerCase())
+                .amount(amount)
                 .gasPrice(DEFAULT_GAS_PRISE)
                 .gasLimit("1")
                 .code("")
@@ -83,11 +91,26 @@ public class ZilCurrencyServiceImpl implements ZilCurrencyService{
         // Send a transaction to the network
         HttpProvider.CreateTxResult result = TransactionFactory.createTransaction(transaction);
         String tranHash = result.getTranID();
-        System.out.println(tranHash);
+        log.debug(tranHash);
+    }
 
-//        Rep<Transaction> transaction2 = client.getTransaction("5975154c84dce12f7055cba47fb81c77a661c3575f0c7aafc25a2f4b4f4f78fb");
-//        System.out.println(new Gson().toJson(transaction2));
+    private BigDecimal getAmount(String address) throws Exception {
+        Rep<HttpProvider.BalanceResult> balance = client.getBalance(address);
+        return new BigDecimal(balance.getResult().getBalance());
+    }
 
-        return tranHash;
+    public BigDecimal getFee(){
+        return new BigDecimal(DEFAULT_GAS_PRISE);
+    }
+
+    public BigDecimal scaleAmountToZilFormat(BigDecimal amount){
+        BigDecimal factor = new BigDecimal(DEFAULT_FACTOR);
+        return amount.divide(factor);
+    }
+
+    private String bigDecimalToTransactionString(BigDecimal num){
+        String str = num.toString();
+        str = str.substring(0, str.indexOf("."));
+        return str;
     }
 }

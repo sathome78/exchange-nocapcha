@@ -1,22 +1,20 @@
 package me.exrates.service.zil;
 
-import com.firestack.laksaj.account.Wallet;
 import com.firestack.laksaj.exception.ZilliqaAPIException;
 import com.firestack.laksaj.jsonrpc.HttpProvider;
 import com.firestack.laksaj.jsonrpc.Rep;
 import com.firestack.laksaj.transaction.Transaction;
-import com.firestack.laksaj.transaction.TransactionFactory;
 import com.firestack.laksaj.utils.Bech32;
-import com.google.gson.Gson;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.MerchantSpecParamDto;
+import me.exrates.model.dto.RefillRequestAddressDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
-import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
@@ -26,9 +24,11 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-import static com.firestack.laksaj.account.Wallet.pack;
-
+@Log4j2
 @Service
 @Conditional(MonolitConditional.class)
 public class ZilRecieveService {
@@ -37,7 +37,7 @@ public class ZilRecieveService {
 
     private static final String MERCHANT_NAME = "ZIL";
     private static final String LAST_BLOCK_PARAM = "LastScannedBlock";
-    private static final int CONFIRMATIONS = 20;
+    private static final int CONFIRMATIONS = 10;
 
 
     @Autowired
@@ -50,32 +50,32 @@ public class ZilRecieveService {
     private MerchantService merchantService;
     @Autowired
     private CurrencyService currencyService;
+    @Autowired
+    private ZilCurrencyService zilCurrencyService;
 
     private Merchant merchant;
     private Currency currency;
 
-    //TODO add scheduler
+    private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
     @PostConstruct
     private void init(){
         client = new HttpProvider("https://api.zilliqa.com/");
-//        currency = currencyService.findByName(MERCHANT_NAME);
-//        merchant = merchantService.findByName(MERCHANT_NAME);
+        currency = currencyService.findByName(MERCHANT_NAME);
+        merchant = merchantService.findByName(MERCHANT_NAME);
+        scheduler.scheduleAtFixedRate(this::checkRefills, 3, 2, TimeUnit.MINUTES);
     }
 
-
-
-    public static void main(String[] args) throws Exception {
-        ZilRecieveService zilRecieveService = new ZilRecieveService();
-        zilRecieveService.init();
-//        zilRecieveService.checkRefills();
-
-        Rep<Transaction> transaction2 = client.getTransaction("5975154c84dce12f7055cba47fb81c77a661c3575f0c7aafc25a2f4b4f4f78fb");
-        System.out.println(new Gson().toJson(transaction2));
-    }
-
-    private void checkRefills() throws IOException, ZilliqaAPIException {
+    private void checkRefills() {
         long lastblock = getLastBaseBlock();
-        long blockchainHeight = getBlockchainHeigh();
+        long blockchainHeight = 0;
+        try {
+            blockchainHeight = getBlockchainHeigh();
+        } catch (IOException e) {
+            log.error(e);
+        } catch (ZilliqaAPIException e) {
+            log.error(e);
+        }
         List<String> listOfAddress = refillService.getListOfValidAddressByMerchantIdAndCurrency(merchant.getId(), currency.getId());
 
         while (lastblock < blockchainHeight - CONFIRMATIONS){
@@ -92,15 +92,17 @@ public class ZilRecieveService {
                                     processTransaction(transaction);
                                 }
                             } catch (Exception e) {
-                                e.printStackTrace();
+                                log.error(e);
                             }
                         }
                     }
                 });
             }
-            //todo Проверить вынести сохранение в базу номер блока после цикла
-//            saveLastBlock(lastblock);
         }
+        //todo Проверить вынести сохранение в базу номер блока после цикла
+        saveLastBlock(lastblock);
+
+        transferToMainAccountJob();
     }
 
     private long getLastBaseBlock(){
@@ -113,8 +115,13 @@ public class ZilRecieveService {
         return Integer.valueOf(numTxBlocks.getResult());
     }
 
-    private List<List<String>> getTransactionsList(long block) throws IOException {
-        Rep<List<List<String>>> blockTransactions = client.getTransactionsForTxBlock(String.valueOf(block));
+    private List<List<String>> getTransactionsList(long block) {
+        Rep<List<List<String>>> blockTransactions = null;
+        try {
+            blockTransactions = client.getTransactionsForTxBlock(String.valueOf(block));
+        } catch (IOException e) {
+            log.error(e);
+        }
         return blockTransactions.getResult();
     }
 
@@ -125,9 +132,26 @@ public class ZilRecieveService {
         param.put("amount", transaction.getAmount());
 
         zilService.processPayment(param);
+        refillService.updateAddressNeedTransfer(Bech32.toBech32Address(transaction.getToAddr()), merchant.getId(), currency.getId(), true);
     }
 
     private void saveLastBlock(long lastBlock){
         specParamsDao.updateParam(MERCHANT_NAME, LAST_BLOCK_PARAM, String.valueOf(lastBlock));
+    }
+
+    private void transferToMainAccountJob(){
+        List<RefillRequestAddressDto> listRefillRequestAddressDto = refillService.findAllAddressesNeededToTransfer(merchant.getId(), currency.getId());
+        listRefillRequestAddressDto.forEach(p->{
+            try {
+                transferToMainAccount(p);
+                refillService.updateAddressNeedTransfer(p.getAddress(), merchant.getId(), currency.getId(), false);
+            } catch (Exception e) {
+                log.error(e);
+            }
+        });
+    }
+
+    private void transferToMainAccount(RefillRequestAddressDto dto) throws Exception {
+        zilCurrencyService.createTransaction(dto);
     }
 }
