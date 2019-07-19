@@ -10,6 +10,8 @@ import com.firestack.laksaj.utils.Bech32;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestAddressDto;
+import me.exrates.service.AlgorithmService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
@@ -37,11 +39,20 @@ public class ZilCurrencyServiceImpl implements ZilCurrencyService{
     @Value("${zil.mainaddress}")
     private String mainAccount;
 
+    @Autowired
+    private static AlgorithmService algorithmService;
+
     @PostConstruct
     private void init(){
         client = new HttpProvider("https://api.zilliqa.com/");
     }
-
+//todo temp
+    public static void main(String[] args) {
+        System.out.println(algorithmService.encodeByKey("fjwf4782KFRH$*#&*fhrf37#HF&",
+                ""));
+        System.out.println(algorithmService.decodeByKey("fjwf4782KFRH$*#&*fhrf37#HF&",
+                ""));
+    }
     public String generatePrivateKey(){
         String privKey = "";
         try {
