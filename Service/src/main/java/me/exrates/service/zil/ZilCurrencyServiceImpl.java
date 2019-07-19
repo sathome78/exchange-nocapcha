@@ -10,7 +10,9 @@ import com.firestack.laksaj.utils.Bech32;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestAddressDto;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -24,12 +26,15 @@ import static com.firestack.laksaj.account.Wallet.pack;
 @Log4j2
 @Service
 @Conditional(MonolitConditional.class)
+@PropertySource("classpath:/merchants/zil_wallet.properties")
 public class ZilCurrencyServiceImpl implements ZilCurrencyService{
 
     public static final String DEFAULT_GAS_PRISE = "1000000000";
     private static final String DEFAULT_FACTOR = "1000000000000";
 
     private static HttpProvider client;
+
+    @Value("${zil.mainaddress}")
     private String mainAccount;
 
     @PostConstruct
@@ -110,7 +115,9 @@ public class ZilCurrencyServiceImpl implements ZilCurrencyService{
 
     private String bigDecimalToTransactionString(BigDecimal num){
         String str = num.toString();
-        str = str.substring(0, str.indexOf("."));
+        if (str.contains(".")){
+            return str.substring(0, str.indexOf("."));
+        }
         return str;
     }
 }
