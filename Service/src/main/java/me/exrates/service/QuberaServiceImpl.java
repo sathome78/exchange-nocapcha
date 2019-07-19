@@ -28,9 +28,9 @@ import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
 import me.exrates.model.dto.qubera.AccountInfoDto;
 import me.exrates.model.dto.qubera.ExternalPaymentShortDto;
 import me.exrates.model.dto.qubera.PaymentRequestDto;
+import me.exrates.model.dto.qubera.QuberaLog;
 import me.exrates.model.dto.qubera.QuberaPaymentInfoDto;
 import me.exrates.model.dto.qubera.QuberaPaymentToMasterDto;
-import me.exrates.model.dto.qubera.QuberaRequestDto;
 import me.exrates.model.dto.qubera.QuberaRequestPaymentShortDto;
 import me.exrates.model.dto.qubera.ResponsePaymentDto;
 import me.exrates.model.dto.qubera.responses.ExternalPaymentResponseDto;
@@ -218,9 +218,8 @@ public class QuberaServiceImpl implements QuberaService {
     }
 
     @Override
-    public boolean logResponse(QuberaRequestDto requestDto) {
+    public boolean logResponse(QuberaLog requestDto) {
         return quberaDao.logResponse(requestDto);
-        //todo send email
     }
 
     @Override
@@ -327,13 +326,13 @@ public class QuberaServiceImpl implements QuberaService {
 
     @Override
     public ExternalPaymentResponseDto createExternalPayment(ExternalPaymentShortDto externalPaymentDto, String email) {
-        String account = quberaDao.getAccountByUserEmail(email);
-        if (account == null) {
+        QuberaUserData userData = quberaDao.getUserDataByUserEmail(email);
+        if (userData == null || userData.getAccountNumber() == null) {
             logger.error("Account not found " + email);
             throw new NgDashboardException("Account not found " + email,
                     Constants.ErrorApi.QUBERA_ACCOUNT_NOT_FOUND_ERROR);
         }
-        AccountInfoDto balanceAccount = kycHttpClient.getBalanceAccount(account);
+        AccountInfoDto balanceAccount = kycHttpClient.getBalanceAccount(userData.getAccountNumber());
 
         if (balanceAccount.getAvailableBalance().getAmount()
                 .compareTo(new BigDecimal(externalPaymentDto.getAmount())) < 0) {
@@ -345,9 +344,20 @@ public class QuberaServiceImpl implements QuberaService {
             throw new NgDashboardException(messageError, Constants.ErrorApi.QUBERA_NOT_ENOUGH_MONEY_FOR_PAYMENT);
         }
 
-        QuberaRequestPaymentShortDto request = QuberaRequestPaymentShortDto.of(externalPaymentDto, account);
+        QuberaRequestPaymentShortDto request = QuberaRequestPaymentShortDto.of(externalPaymentDto, userData.getAccountNumber());
 
-        return kycHttpClient.createExternalPayment(request);
+        ExternalPaymentResponseDto externalPayment = kycHttpClient.createExternalPayment(request);
+        QuberaLog quberaLog = QuberaLog.builder()
+                .accountNumber(userData.getAccountNumber())
+                .accountIBAN(userData.getIban())
+                .paymentAmount(new BigDecimal(externalPaymentDto.getAmount()))
+                .currency(externalPaymentDto.getCurrencyCode())
+                .transferType("OUTPUT")
+                .state(QuberaLog.ExternalPaymentState.create.name())
+                .build();
+
+        quberaDao.createExternalPaymentLog(quberaLog);
+        return externalPayment;
     }
 
     @Override
@@ -368,7 +378,7 @@ public class QuberaServiceImpl implements QuberaService {
     }
 
     @Override
-    public void sendNotification(QuberaRequestDto quberaRequestDto) {
+    public void sendNotification(QuberaLog quberaRequestDto) {
         Integer userId = quberaDao.findUserIdByAccountNumber(quberaRequestDto.getAccountNumber());
         User user = userService.getUserById(userId);
         String msg;

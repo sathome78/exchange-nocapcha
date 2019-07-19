@@ -1,0 +1,1 @@
+ALTER TABLE qubera_response_log MODIFY messageId int(11);

@@ -1,22 +1,17 @@
 package me.exrates.controller.merchants;
 
 import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.Payment;
 import me.exrates.model.User;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.AccountQuberaResponseDto;
-import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.RefillRequestParamsDto;
 import me.exrates.model.dto.ngDto.PinDtoSimple;
 import me.exrates.model.dto.qubera.AccountInfoDto;
 import me.exrates.model.dto.qubera.ExternalPaymentShortDto;
+import me.exrates.model.dto.qubera.QuberaLog;
 import me.exrates.model.dto.qubera.QuberaPaymentInfoDto;
-import me.exrates.model.dto.qubera.QuberaRequestDto;
 import me.exrates.model.dto.qubera.RequestConfirmExternalPaymentDto;
 import me.exrates.model.dto.qubera.responses.ExternalPaymentResponseDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
-import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngModel.response.ResponseModel;
@@ -25,7 +20,6 @@ import me.exrates.security.service.SecureService;
 import me.exrates.service.InputOutputService;
 import me.exrates.service.QuberaService;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.RefillRequestAlreadyAcceptedException;
 import me.exrates.service.notifications.G2faService;
 import org.apache.log4j.LogManager;
@@ -47,11 +41,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.Locale;
-import java.util.Map;
-
-import static me.exrates.model.enums.OperationType.INPUT;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
 
 
 @RestController
@@ -79,7 +68,7 @@ public class QuberaMerchantController {
     }
 
     @PostMapping(value = "/merchants/qubera/payment/status", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> statusPayment(@RequestBody QuberaRequestDto requestDto) {
+    public ResponseEntity<String> statusPayment(@RequestBody QuberaLog requestDto) {
         logger.info("Response: " + requestDto.getParams());
         quberaService.logResponse(requestDto);
         try {
@@ -92,20 +81,20 @@ public class QuberaMerchantController {
         }
     }
 
-    @PostMapping(value = API_PRIVATE_V2 + "/merchants/qubera/payment/create", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseModel<?> createPaymentToMasterAccount(@RequestBody RefillRequestParamsDto requestParamsDto) {
-        Locale locale = Locale.ENGLISH;
-        RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);
-        Payment payment = new Payment(INPUT);
-        payment.setCurrency(requestParamsDto.getCurrency());
-        payment.setMerchant(requestParamsDto.getMerchant());
-        payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
-        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, getPrincipalEmail(), locale)
-                .orElseThrow(InvalidAmountException::new);
-        RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
-        Map<String, String> refill = quberaService.refill(request);
-        return new ResponseModel<>(refill);
-    }
+//    @PostMapping(value = API_PRIVATE_V2 + "/merchants/qubera/payment/create", consumes = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseModel<?> createPaymentToMasterAccount(@RequestBody RefillRequestParamsDto requestParamsDto) {
+//        Locale locale = Locale.ENGLISH;
+//        RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);
+//        Payment payment = new Payment(INPUT);
+//        payment.setCurrency(requestParamsDto.getCurrency());
+//        payment.setMerchant(requestParamsDto.getMerchant());
+//        payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
+//        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, getPrincipalEmail(), locale)
+//                .orElseThrow(InvalidAmountException::new);
+//        RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
+//        Map<String, String> refill = quberaService.refill(request);
+//        return new ResponseModel<>(refill);
+//    }
 
 
     @PostMapping(value = API_PRIVATE_V2 + "/merchants/qubera/account/create", consumes = MediaType.APPLICATION_JSON_VALUE)

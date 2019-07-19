@@ -17,11 +17,11 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class QuberaRequestDto {
+public class QuberaLog {
 
     private String accountIBAN;
     private String accountNumber;
-    private int messageId;
+    private Integer messageId;
     private int paymentId;
     @JsonDeserialize(using = QuberaLocalDateDeserializer.class)
     private LocalDateTime processingTime;
@@ -31,6 +31,7 @@ public class QuberaRequestDto {
     @JsonDeserialize(using = QuberaJsNumberBigDecimalDeserializer.class)
     private BigDecimal paymentAmount;
     private String transferType;
+    private ExternalPaymentState externalPaymentState;
 
     public Map<String, String> getParams() {
         Map<String, String> params = new HashMap<>();
@@ -39,6 +40,10 @@ public class QuberaRequestDto {
         params.put("accountNumber", accountNumber);
         params.put("paymentAmount", getPaymentAmount().toPlainString());
         return params;
+    }
+
+    public enum ExternalPaymentState {
+        create, confirm, fail
     }
 
 }
