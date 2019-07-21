@@ -22,7 +22,7 @@ public class ExternalPaymentResponseDto {
     @Setter
     @AllArgsConstructor
     @NoArgsConstructor
-    public class PaymentAmount {
+    public static class PaymentAmount {
         private Double amount;
         private String currencyCode;
     }
@@ -31,7 +31,7 @@ public class ExternalPaymentResponseDto {
     @Setter
     @AllArgsConstructor
     @NoArgsConstructor
-    public class Rate {
+    public static class Rate {
         private String from;
         private String to;
         private BigDecimal value;

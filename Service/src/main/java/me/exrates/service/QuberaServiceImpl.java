@@ -205,7 +205,7 @@ public class QuberaServiceImpl implements QuberaService {
         ResponsePaymentDto responsePaymentDto = kycHttpClient.createPaymentInternal(paymentToMasterDto, false);
         logger.info("withdraw create payment internal success, amount - " + responsePaymentDto.getTransactionAmount().toPlainString()
                 + ", transaction " + responsePaymentDto.getTransactionCurrencyCode());
-        if (!kycHttpClient.confirmInternalPayment(responsePaymentDto.getPaymentId(), true)) {
+        if (!kycHttpClient.confirmInternalPayment(responsePaymentDto.getPaymentId(), false)) {
             logger.info("Fail confirm payment " + responsePaymentDto.getTransactionCurrencyCode());
             throw new MerchantException("Payment not confirmed");
         }
@@ -384,7 +384,7 @@ public class QuberaServiceImpl implements QuberaService {
         String msg;
         UserNotificationMessage message;
         if (quberaRequestDto.getState().equalsIgnoreCase("Rejected")) {
-            msg = "Your payment was rejected, reason " + quberaRequestDto.getRejectionReason();
+            msg = "Your payment was rejected, reason: " + quberaRequestDto.getRejectionReason();
             message = new UserNotificationMessage(WsSourceTypeEnum.FIAT, UserNotificationType.ERROR, msg);
         } else {
             msg = "Your payment was confirmed, amount " + quberaRequestDto.getPaymentAmount().toPlainString() + " " + quberaRequestDto.getCurrency();

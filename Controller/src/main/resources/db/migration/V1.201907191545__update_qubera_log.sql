@@ -1,1 +1,7 @@
-ALTER TABLE qubera_response_log MODIFY messageId int(11);
+ALTER TABLE QUBERA_RESPONSE_LOG MODIFY messageId int(11);
+ALTER TABLE QUBERA_RESPONSE_LOG MODIFY currency VARCHAR (10);
+
+ALTER TABLE qubera_response_log DROP PRIMARY KEY;
+ALTER TABLE qubera_response_log MODIFY paymentId BIGINT (20);
+
+ALTER TABLE qubera_response_log ADD id BIGINT(20) NOT NULL auto_increment PRIMARY KEY;

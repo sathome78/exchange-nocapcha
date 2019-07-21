@@ -38,7 +38,7 @@ public class QuberaLog {
         params.put("paymentId", String.valueOf(this.paymentId));
         params.put("currency", currency);
         params.put("accountNumber", accountNumber);
-        params.put("paymentAmount", getPaymentAmount().toPlainString());
+        params.put("paymentAmount", paymentAmount == null ? null : getPaymentAmount().toPlainString());
         return params;
     }
 

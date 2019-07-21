@@ -1,5 +1,6 @@
 package me.exrates.ngcontroller;
 
+import me.exrates.controller.annotation.CheckActiveUserStatus;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.exception.RefillAddressException;
 import me.exrates.model.CreditsOperation;
@@ -7,6 +8,8 @@ import me.exrates.model.Currency;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
 import me.exrates.model.User;
+import me.exrates.model.constants.ErrorApiTitles;
+import me.exrates.model.dto.PinOrderInfoDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestParamsDto;
 import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
@@ -19,6 +22,7 @@ import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissio
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.model.ngExceptions.NgCurrencyNotFoundException;
 import me.exrates.model.ngExceptions.NgRefillException;
+import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.service.CheckUserAuthority;
@@ -35,6 +39,7 @@ import me.exrates.service.exception.MerchantNotFoundException;
 import me.exrates.service.exception.MerchantServiceNotFoundException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
+import me.exrates.service.notifications.G2faService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +62,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashMap;
@@ -88,7 +94,7 @@ public class NgRefillController {
     private final UserService userService;
     private final QuberaService quberaService;
     private final SecureService secureService;
-
+    private final G2faService g2faService;
     private final GtagRefillService gtagRefillService;
 
     @Autowired
@@ -100,6 +106,7 @@ public class NgRefillController {
                               RefillService refillService,
                               QuberaService quberaService,
                               SecureService secureService,
+                              G2faService g2faService,
                               GtagRefillService gtagRefillService) {
         this.currencyService = currencyService;
         this.inputOutputService = inputOutputService;
@@ -109,6 +116,7 @@ public class NgRefillController {
         this.refillService = refillService;
         this.secureService = secureService;
         this.quberaService = quberaService;
+        this.g2faService = g2faService;
         this.gtagRefillService = gtagRefillService;
     }
 
@@ -269,6 +277,10 @@ public class NgRefillController {
 
         try {
             if (merchantService.findById(request.getMerchantId()).getName().equalsIgnoreCase("Qubera")) {
+                if (requestParamsDto.getPin() == null) {
+                    throw new IncorrectPinException("Incorrect pin: " + requestParamsDto.getPin());
+                }
+
                 if (!userService.checkPin(request.getUserEmail(), requestParamsDto.getPin(), NotificationMessageEventEnum.TRANSFER)) {
                     User user = userService.findByEmail(request.getUserEmail());
                     secureService.sendTransferPinCode(user, requestParamsDto.getSum().toPlainString(), request.getCurrencyName());

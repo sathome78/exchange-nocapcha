@@ -51,7 +51,7 @@ public class ExternalPaymentShortDto {
 
         public static PaymentType of(String name) {
             return Arrays.stream(PaymentType.values())
-                    .filter(item -> item.getType().equals(name))
+                    .filter(item -> item.getType().equalsIgnoreCase(name))
                     .findFirst()
                     .orElseThrow(() -> new NgDashboardException(ErrorApiTitles.QUBERA_PAYMENT_TYPE_ERROR));
         }

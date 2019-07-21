@@ -41,6 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.Map;
 
 
 @RestController
@@ -69,7 +70,8 @@ public class QuberaMerchantController {
 
     @PostMapping(value = "/merchants/qubera/payment/status", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> statusPayment(@RequestBody QuberaLog requestDto) {
-        logger.info("Response: " + requestDto.getParams());
+        Map<String, String> params = requestDto.getParams();
+        logger.info("Response: " + params);
         quberaService.logResponse(requestDto);
         try {
             quberaService.sendNotification(requestDto);
