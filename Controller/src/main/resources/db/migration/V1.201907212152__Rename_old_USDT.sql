@@ -1,8 +1,8 @@
-UPDATE `MERCHANT_CURRENCY` SET refill_block = 1, withdraw_block = 1, transfer_block = 1 WHERE id = (SELECT id FROM `CURRENCY` WHERE name = 'USDT');
+UPDATE `MERCHANT_CURRENCY` SET refill_block = 1, withdraw_block = 1, transfer_block = 1 WHERE currency_id = (SELECT id FROM `CURRENCY` WHERE name = 'USDT');
 
-UPDATE `MERCHANT` SET name ='USDT-old' WHERE id = (SELECT id FROM `MERCHANT` WHERE name = 'USDT');
+UPDATE `MERCHANT` SET name ='USDT-old' WHERE name = 'USDT';
 
-UPDATE `CURRENCY` SET name ='USDT-old' WHERE id = (SELECT id FROM `CURRENCY` WHERE name = 'USDT');
+UPDATE `CURRENCY` SET name ='USDT-old' WHERE name = 'USDT';
 
 UPDATE `CURRENCY_PAIR` SET name = 'BTC/USDT-old', hidden = 1, ticker_name = 'BTC/USDT-old' WHERE name = 'BTC/USDT';
 
