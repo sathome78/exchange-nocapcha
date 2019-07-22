@@ -42,7 +42,7 @@ public class QuberaRequestPaymentShortDto {
 
         BeneficiaryAccountDto account;
         BeneficiaryDetailsDto beneficiary;
-        switch (dto.getType()) {
+        switch (ExternalPaymentShortDto.PaymentType.of(dto.getType())) {
             case SEPA:
                 account = BeneficiaryAccountDto.builder().iban(dto.getIban()).build();
                 beneficiary = builder.account(account).build();
