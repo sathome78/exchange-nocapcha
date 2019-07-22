@@ -270,9 +270,7 @@ public class QuberaServiceImpl implements QuberaService {
     public AccountInfoDto getInfoAccount(String email) {
         String account = quberaDao.getAccountByUserEmail(email);
         if (account == null) {
-            logger.error("Account not found " + email);
-            throw new NgDashboardException("Account not found " + email,
-                    Constants.ErrorApi.QUBERA_ACCOUNT_NOT_FOUND_ERROR);
+            return null;
         }
         return kycHttpClient.getBalanceAccount(account);
     }
