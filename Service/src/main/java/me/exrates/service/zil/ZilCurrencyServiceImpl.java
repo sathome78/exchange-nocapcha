@@ -25,7 +25,7 @@ import java.security.NoSuchProviderException;
 
 import static com.firestack.laksaj.account.Wallet.pack;
 
-@Log4j2
+@Log4j2(topic = "zil_log")
 @Service
 @Conditional(MonolitConditional.class)
 @PropertySource("classpath:/merchants/zil_wallet.properties")
@@ -34,25 +34,21 @@ public class ZilCurrencyServiceImpl implements ZilCurrencyService{
     public static final String DEFAULT_GAS_PRISE = "1000000000";
     private static final String DEFAULT_FACTOR = "1000000000000";
 
+    public static final String CODE_FROM_AWS = "zil_coin\":\"";
+
     private static HttpProvider client;
 
     @Value("${zil.mainaddress}")
     private String mainAccount;
 
     @Autowired
-    private static AlgorithmService algorithmService;
+    private AlgorithmService algorithmService;
 
     @PostConstruct
     private void init(){
         client = new HttpProvider("https://api.zilliqa.com/");
     }
-//todo temp
-    public static void main(String[] args) {
-        System.out.println(algorithmService.encodeByKey("fjwf4782KFRH$*#&*fhrf37#HF&",
-                ""));
-        System.out.println(algorithmService.decodeByKey("fjwf4782KFRH$*#&*fhrf37#HF&",
-                ""));
-    }
+
     public String generatePrivateKey(){
         String privKey = "";
         try {
@@ -82,7 +78,8 @@ public class ZilCurrencyServiceImpl implements ZilCurrencyService{
     }
 
     public void createTransaction(RefillRequestAddressDto dto) throws Exception {
-        String privKey = dto.getPrivKey();
+
+        String privKey = algorithmService.decodeByKey(CODE_FROM_AWS, dto.getPrivKey());
         String pubKey = dto.getPubKey();
 
         BigDecimal accountAmount = getAmount(Bech32.fromBech32Address(dto.getAddress()));

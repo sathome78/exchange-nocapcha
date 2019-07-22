@@ -29,7 +29,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-@Log4j2
+@Log4j2(topic = "zil_log")
 @Service
 @Conditional(MonolitConditional.class)
 public class ZilRecieveService {
@@ -38,7 +38,7 @@ public class ZilRecieveService {
 
     private static final String MERCHANT_NAME = "ZIL";
     private static final String LAST_BLOCK_PARAM = "LastScannedBlock";
-    private static final int CONFIRMATIONS = 3;
+    private static final int CONFIRMATIONS = 4;
 
 
     @Autowired
@@ -64,7 +64,7 @@ public class ZilRecieveService {
         client = new HttpProvider("https://api.zilliqa.com/");
         currency = currencyService.findByName(MERCHANT_NAME);
         merchant = merchantService.findByName(MERCHANT_NAME);
-        scheduler.scheduleAtFixedRate(this::checkRefills, 3, 3, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::checkRefills, 4, 5, TimeUnit.MINUTES);
     }
 
     private void checkRefills() {

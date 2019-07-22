@@ -8,6 +8,7 @@ import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.service.AlgorithmService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
@@ -30,6 +31,7 @@ import java.util.Map;
 public class ZilServiceImpl implements ZilService{
 
     private static final String CURRENCY_NAME = "ZIL";
+    public static final String CODE_FROM_AWS = "zil_coin\":\"";
     private Merchant merchant;
     private Currency currency;
 
@@ -45,6 +47,8 @@ public class ZilServiceImpl implements ZilService{
     private WithdrawUtils withdrawUtils;
     @Autowired
     private ZilCurrencyService zilCurrencyService;
+    @Autowired
+    private AlgorithmService algorithmService;
 
     @PostConstruct
     public void init() {
@@ -59,7 +63,7 @@ public class ZilServiceImpl implements ZilService{
         String message = messageSource.getMessage("merchants.refill.xlm",
                 new Object[] {address}, request.getLocale());
         return new HashMap<String, String>(){{
-            put("privKey", privKey);
+            put("privKey", algorithmService.encodeByKey(CODE_FROM_AWS, privKey));
             put("pubKey", zilCurrencyService.getPublicKeyFromPrivateKey(privKey));
             put("address", address);
             put("message", message);
