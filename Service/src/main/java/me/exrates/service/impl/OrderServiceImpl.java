@@ -137,7 +137,6 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
@@ -200,7 +199,7 @@ import static me.exrates.service.util.CollectionUtil.isEmpty;
 @PropertySource("classpath:/orders.properties")
 public class OrderServiceImpl implements OrderService {
 
-//    @Value("#{BigDecimal.valueOf('${orders.max-exrate-deviation-percent}')}")
+    //    @Value("#{BigDecimal.valueOf('${orders.max-exrate-deviation-percent}')}")
     public BigDecimal exrateDeviationPercent = BigDecimal.valueOf(20);
 
     public static final String BUY = "BUY";
@@ -617,7 +616,7 @@ public class OrderServiceImpl implements OrderService {
         return orderValidationDto;
     }
 
-    private void validateExrate(OrderCreateDto dto,  Map<String, Object> errors) {
+    private void validateExrate(OrderCreateDto dto, Map<String, Object> errors) {
         BigDecimal lastRate = new BigDecimal(exchangeRatesHolder.getOne(dto.getCurrencyPair().getId()).getLastOrderRate());
         BigDecimal bound = lastRate.multiply(exrateDeviationPercent).divide(BigDecimal.valueOf(100), 8, RoundingMode.HALF_UP);
         BigDecimal delta = dto.getExchangeRate().subtract(lastRate).abs();
@@ -2356,7 +2355,6 @@ public class OrderServiceImpl implements OrderService {
                                                                          Boolean hideCanceled, String sortByCreated,
                                                                          LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo,
                                                                          Boolean limited, Locale locale) {
-
         int recordsCount = orderDao.getMyOrdersWithStateCount(
                 userId,
                 currencyPair,
@@ -2398,6 +2396,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<OrderWideListDto> getOrdersForExcel(Integer userId, CurrencyPair currencyPair, String currencyName,
                                                     OrderStatus orderStatus, String scope, Integer limit,
                                                     Integer offset, Boolean hideCanceled, String sortByCreated,
@@ -2466,6 +2465,7 @@ public class OrderServiceImpl implements OrderService {
         int index = 1;
         for (OrderWideListDto order : orders) {
             Row row = sheet.createRow(index++);
+
             if (orderStatus == OrderStatus.OPENED) {
                 row.createCell(0, CellType.STRING).setCellValue(getValue(order.getId()));
                 row.createCell(1, CellType.STRING).setCellValue(getValue(order.getDateCreation()));
@@ -2477,7 +2477,9 @@ public class OrderServiceImpl implements OrderService {
                 row.createCell(7, CellType.STRING).setCellValue(getValue(order.getCommissionValue()));
                 row.createCell(8, CellType.STRING).setCellValue(getValue(order.getAmountWithCommission()));
             } else {
-                row.createCell(0, CellType.STRING).setCellValue(getValue(Objects.nonNull(order.getDateStatusModification()) ? order.getDateStatusModification() : order.getDateModification()));
+                row.createCell(0, CellType.STRING).setCellValue(getValue(Objects.nonNull(order.getDateStatusModification())
+                        ? order.getDateStatusModification()
+                        : order.getDateModification()));
                 row.createCell(1, CellType.STRING).setCellValue(getValue(order.getCurrencyPairName()));
                 row.createCell(2, CellType.STRING).setCellValue(getValue(order.getOrderBaseType()));
                 row.createCell(3, CellType.STRING).setCellValue(getValue(order.getOperationType()));
