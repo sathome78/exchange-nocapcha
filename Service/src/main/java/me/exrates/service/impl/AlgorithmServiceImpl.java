@@ -153,7 +153,7 @@ public class AlgorithmServiceImpl implements AlgorithmService {
 
     @Override
     public String encodeByKey(String code, String txt) {
-        String key = getSecret(code);
+        String key = code;//getSecret(code);
         String text = xorMessage(txt, key);
         try {
             return base64Encode(text);
@@ -171,8 +171,16 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         } catch (Exception e) {
             return null;
         }
-        key = getSecret(code);
+        key = code;//getSecret(code);
         return xorMessage(txt, key);
+    }
+
+    public static void main(String[] args) {
+        AlgorithmServiceImpl algorithmService = new AlgorithmServiceImpl();
+        String str = algorithmService.encodeByKey("mcwecnewfh239hf209f20fhwiufbwpbf2d72hd",
+                "disagree race wild unit sphere differ crowd beach moon decline survey play");
+        System.out.println(str);
+        System.out.println(algorithmService.decodeByKey("mcwecnewfh239hf209f20fhwiufbwpbf2d72hd",str));
     }
 
     //    У инстанса должна быть iam policy, на чтение aws секретов!!!!!
