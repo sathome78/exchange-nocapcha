@@ -43,6 +43,7 @@ import me.exrates.model.dto.RefillRequestBtcInfoDto;
 import me.exrates.model.dto.RefsListContainer;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.UserSessionDto;
 import me.exrates.model.dto.UserTransferInfoDto;
 import me.exrates.model.dto.UserWalletSummaryDto;
@@ -77,8 +78,10 @@ import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.TransactionType;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserEventEnum;
+import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
+import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.form.AuthorityOptionsForm;
@@ -120,6 +123,7 @@ import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
 import me.exrates.service.omni.OmniService;
 import me.exrates.service.session.UserSessionService;
+import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.usdx.UsdxService;
 import me.exrates.service.usdx.model.UsdxTransaction;
@@ -284,9 +288,10 @@ public class AdminController {
     @Autowired
     @Qualifier("ExratesSessionRegistry")
     private SessionRegistry sessionRegistry;
-
     @Autowired
     private BigDecimalConverter converter;
+    @Autowired
+    private StompMessenger stompMessenger;
 
     public static String adminAnyAuthority;
     public static String nonAdminAnyAuthority;
@@ -962,16 +967,26 @@ public class AdminController {
     }
 
     @AdminLoggable
-    @RequestMapping(value = "/2a8fy7b07dxe44/changeActiveBalance/submit", method = RequestMethod.POST)
+    @PostMapping(value = "/2a8fy7b07dxe44/changeActiveBalance/submit")
     @ResponseBody
-    public ResponseEntity<Void> changeActiveBalance(@RequestParam Integer userId, @RequestParam("currency") Integer currencyId,
-                                                    @RequestParam BigDecimal amount, Principal principal) {
-        LOG.debug("userId = " + userId + ", currencyId = " + currencyId + "? amount = " + amount);
+    public ResponseEntity changeActiveBalance(@RequestParam Integer userId,
+                                              @RequestParam("currency") Integer currencyId,
+                                              @RequestParam BigDecimal amount,
+                                              @RequestParam(defaultValue = "manually credited") String comment,
+                                              Principal principal) {
+        LOG.debug("userId = " + userId + ", currencyId = " + currencyId + ", amount = " + amount);
+
         walletService.manualBalanceChange(userId, currencyId, amount, principal.getName());
-        return new ResponseEntity<>(HttpStatus.OK);
 
+        stompMessenger.sendPersonalMessageToUser(
+                userService.findEmailById(userId),
+                UserNotificationMessage.builder()
+                        .notificationType(UserNotificationType.INFORMATION)
+                        .sourceTypeEnum(WsSourceTypeEnum.SUBSCRIBE)
+                        .text(String.format("%s %s %s", amount.toPlainString(), currencyService.getCurrencyName(currencyId), comment))
+                        .build());
+        return ResponseEntity.ok().build();
     }
-
 
     @RequestMapping(value = "/2a8fy7b07dxe44/commissions", method = RequestMethod.GET)
     public ModelAndView commissions() {
@@ -1278,7 +1293,7 @@ public class AdminController {
 
     @PostMapping("/2a8fy7b07dxe44/usdxWallet/sendTransaction")
     @ResponseBody
-    public UsdxTransaction sendUsdxWalletTransaction(@RequestParam String password, UsdxTransaction usdxTransaction){
+    public UsdxTransaction sendUsdxWalletTransaction(@RequestParam String password, UsdxTransaction usdxTransaction) {
         return usdxService.sendUsdxTransactionToExternalWallet(password, usdxTransaction);
     }
 
@@ -1290,13 +1305,13 @@ public class AdminController {
 
     @RequestMapping("/2a8fy7b07dxe44/usdxWallet/history")
     @ResponseBody
-    public List<UsdxTransaction> getUsdxWalletAllTransactions(){
+    public List<UsdxTransaction> getUsdxWalletAllTransactions() {
         return usdxService.getAllTransactions();
     }
 
     @RequestMapping("/2a8fy7b07dxe44/usdxWallet/transaction")
     @ResponseBody
-    public UsdxTransaction getUsdxWalletTransaction(String transferId){
+    public UsdxTransaction getUsdxWalletTransaction(String transferId) {
         return usdxService.getTransactionByTransferId(transferId);
     }
 
@@ -1820,9 +1835,9 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/ip", method = GET)
     public String getUsersInfo(Model model) {
         model.addAttribute("events", Arrays
-                                                    .stream(UserEventEnum.values())
-                                                    .filter(UserEventEnum::isIpLogged)
-                                                    .toArray());
+                .stream(UserEventEnum.values())
+                .filter(UserEventEnum::isIpLogged)
+                .toArray());
         return "admin/ipAdresses";
     }
 
