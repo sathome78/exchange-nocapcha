@@ -1,21 +1,17 @@
 package me.exrates.controller.merchants;
 
 import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.Payment;
 import me.exrates.model.User;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.AccountQuberaResponseDto;
-import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.RefillRequestParamsDto;
 import me.exrates.model.dto.ngDto.PinDtoSimple;
 import me.exrates.model.dto.qubera.AccountInfoDto;
-import me.exrates.model.dto.qubera.ExternalPaymentDto;
+import me.exrates.model.dto.qubera.ExternalPaymentShortDto;
+import me.exrates.model.dto.qubera.QuberaLog;
 import me.exrates.model.dto.qubera.QuberaPaymentInfoDto;
-import me.exrates.model.dto.qubera.QuberaRequestDto;
-import me.exrates.model.dto.qubera.ResponsePaymentDto;
+import me.exrates.model.dto.qubera.RequestConfirmExternalPaymentDto;
+import me.exrates.model.dto.qubera.responses.ExternalPaymentResponseDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
-import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngModel.response.ResponseModel;
@@ -24,7 +20,6 @@ import me.exrates.security.service.SecureService;
 import me.exrates.service.InputOutputService;
 import me.exrates.service.QuberaService;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.RefillRequestAlreadyAcceptedException;
 import me.exrates.service.notifications.G2faService;
 import org.apache.log4j.LogManager;
@@ -38,6 +33,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -45,11 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.Locale;
 import java.util.Map;
-
-import static me.exrates.model.enums.OperationType.INPUT;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
 
 
 @RestController
@@ -77,8 +69,9 @@ public class QuberaMerchantController {
     }
 
     @PostMapping(value = "/merchants/qubera/payment/status", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> statusPayment(@RequestBody QuberaRequestDto requestDto) {
-        logger.info("Response: " + requestDto.getParams());
+    public ResponseEntity<String> statusPayment(@RequestBody QuberaLog requestDto) {
+        Map<String, String> params = requestDto.getParams();
+        logger.info("Response: " + params);
         quberaService.logResponse(requestDto);
         try {
             quberaService.sendNotification(requestDto);
@@ -90,20 +83,20 @@ public class QuberaMerchantController {
         }
     }
 
-    @PostMapping(value = API_PRIVATE_V2 + "/merchants/qubera/payment/create", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseModel<?> createPaymentToMasterAccount(@RequestBody RefillRequestParamsDto requestParamsDto) {
-        Locale locale = Locale.ENGLISH;
-        RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);
-        Payment payment = new Payment(INPUT);
-        payment.setCurrency(requestParamsDto.getCurrency());
-        payment.setMerchant(requestParamsDto.getMerchant());
-        payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
-        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, getPrincipalEmail(), locale)
-                .orElseThrow(InvalidAmountException::new);
-        RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
-        Map<String, String> refill = quberaService.refill(request);
-        return new ResponseModel<>(refill);
-    }
+//    @PostMapping(value = API_PRIVATE_V2 + "/merchants/qubera/payment/create", consumes = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseModel<?> createPaymentToMasterAccount(@RequestBody RefillRequestParamsDto requestParamsDto) {
+//        Locale locale = Locale.ENGLISH;
+//        RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);
+//        Payment payment = new Payment(INPUT);
+//        payment.setCurrency(requestParamsDto.getCurrency());
+//        payment.setMerchant(requestParamsDto.getMerchant());
+//        payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
+//        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, getPrincipalEmail(), locale)
+//                .orElseThrow(InvalidAmountException::new);
+//        RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
+//        Map<String, String> refill = quberaService.refill(request);
+//        return new ResponseModel<>(refill);
+//    }
 
 
     @PostMapping(value = API_PRIVATE_V2 + "/merchants/qubera/account/create", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -158,10 +151,20 @@ public class QuberaMerchantController {
     }
 
     @PostMapping(value = API_PRIVATE_V2 + "/merchants/qubera/payment/external")
-    public ResponseModel<?> createExternalPayment(@RequestBody ExternalPaymentDto externalPaymentDto) {
-        ResponsePaymentDto responsePaymentDto =
+    public ResponseModel<?> createExternalPayment(@RequestBody ExternalPaymentShortDto externalPaymentDto) {
+        ExternalPaymentResponseDto response =
                 quberaService.createExternalPayment(externalPaymentDto, getPrincipalEmail());
-        return new ResponseModel<>(responsePaymentDto);
+        return new ResponseModel<>(response);
+    }
+
+    @PutMapping(value = API_PRIVATE_V2 + "/merchants/qubera/payment/external/confirm")
+    public ResponseModel<?> confirmExternalPayment(@RequestBody @Valid RequestConfirmExternalPaymentDto requestDto) {
+        if (!userService.checkPin(getPrincipalEmail(), requestDto.getPin(), NotificationMessageEventEnum.WITHDRAW)) {
+            User user = userService.findByEmail(getPrincipalEmail());
+            secureService.sendPinCodeForCreateQuberaAccount(user);
+            throw new IncorrectPinException("Incorrect pin: " + requestDto.getPin());
+        }
+        return new ResponseModel<>(quberaService.confirmExternalPayment(requestDto.getPaymentId()));
     }
 
     private String getPrincipalEmail() {
