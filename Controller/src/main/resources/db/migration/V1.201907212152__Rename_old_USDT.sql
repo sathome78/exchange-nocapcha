@@ -2,7 +2,7 @@ UPDATE `MERCHANT_CURRENCY` SET refill_block = 1, withdraw_block = 1, transfer_bl
 
 UPDATE `MERCHANT` SET name ='USDT-old' WHERE name = 'USDT';
 
-UPDATE `CURRENCY` SET name ='USDT-old' WHERE name = 'USDT';
+UPDATE `CURRENCY` SET name ='USDT-old', hidden = 1 WHERE name = 'USDT';
 
 UPDATE `CURRENCY_PAIR` SET name = 'BTC/USDT-old', hidden = 1, ticker_name = 'BTC/USDT-old' WHERE name = 'BTC/USDT';
 
