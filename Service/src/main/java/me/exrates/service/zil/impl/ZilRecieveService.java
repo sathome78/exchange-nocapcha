@@ -1,4 +1,4 @@
-package me.exrates.service.zil;
+package me.exrates.service.zil.impl;
 
 import com.firestack.laksaj.exception.ZilliqaAPIException;
 import com.firestack.laksaj.jsonrpc.HttpProvider;
@@ -15,6 +15,8 @@ import me.exrates.model.dto.RefillRequestAddressDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
+import me.exrates.service.zil.ZilCurrencyService;
+import me.exrates.service.zil.ZilService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;

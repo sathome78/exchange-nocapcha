@@ -1,4 +1,4 @@
-package me.exrates.service.zil;
+package me.exrates.service.zil.impl;
 
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
@@ -14,6 +14,8 @@ import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.util.WithdrawUtils;
+import me.exrates.service.zil.ZilCurrencyService;
+import me.exrates.service.zil.ZilService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Conditional;
@@ -28,7 +30,7 @@ import java.util.Map;
 @Log4j2(topic = "zil_log")
 @Service
 @Conditional(MonolitConditional.class)
-public class ZilServiceImpl implements ZilService{
+public class ZilServiceImpl implements ZilService {
 
     private static final String CURRENCY_NAME = "ZIL";
     private static final String CODE_FROM_AWS = "zil_coin\":\"";
