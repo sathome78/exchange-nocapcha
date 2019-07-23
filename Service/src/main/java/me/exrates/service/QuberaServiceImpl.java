@@ -101,7 +101,7 @@ public class QuberaServiceImpl implements QuberaService {
     private @Value("${qubera.city}")
     String city;
 
-    private @Value("${qubera.country}")
+    private @Value("${qubera.address}")
     String address;
 
     @Value("${server-host}")
