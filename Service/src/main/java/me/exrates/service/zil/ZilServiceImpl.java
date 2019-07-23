@@ -31,7 +31,7 @@ import java.util.Map;
 public class ZilServiceImpl implements ZilService{
 
     private static final String CURRENCY_NAME = "ZIL";
-    public static final String CODE_FROM_AWS = "zil_coin\":\"";
+    private static final String CODE_FROM_AWS = "zil_coin\":\"";
     private Merchant merchant;
     private Currency currency;
 

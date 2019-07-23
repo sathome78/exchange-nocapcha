@@ -34,15 +34,19 @@ public class ZilCurrencyServiceImpl implements ZilCurrencyService{
     public static final String DEFAULT_GAS_PRISE = "1000000000";
     private static final String DEFAULT_FACTOR = "1000000000000";
 
-    public static final String CODE_FROM_AWS = "zil_coin\":\"";
+    private static final String CODE_FROM_AWS = "zil_coin\":\"";
 
     private static HttpProvider client;
 
     @Value("${zil.mainaddress}")
     private String mainAccount;
 
+    private final AlgorithmService algorithmService;
+
     @Autowired
-    private AlgorithmService algorithmService;
+    public ZilCurrencyServiceImpl(AlgorithmService algorithmService){
+        this.algorithmService = algorithmService;
+    }
 
     @PostConstruct
     private void init(){
