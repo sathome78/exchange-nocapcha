@@ -155,19 +155,6 @@
                 <div>
                   <fieldset class="field-user">
                     <div class="input-block-wrapper">
-                      <div class="col-md-8 input-block-wrapper__label-wrapper">
-                        <label class="input-block-wrapper__label"><loc:message code="message.2fa.title"/></label>
-                      </div>
-
-                      <div class="col-md-4 input-block-wrapper__input-wrapper">
-                        <input type="checkbox" name="user2fa" class="input-block-wrapper__input admin-form-input"
-                               readonly disabled
-                               <c:if test="${user2fa}">checked</c:if>
-                        />
-                      </div>
-                    </div>
-
-                    <div class="input-block-wrapper">
                       <div class="col-md-3 input-block-wrapper__label-wrapper">
                         <label for="user-name"
                                class="input-block-wrapper__label"><loc:message
@@ -285,6 +272,37 @@
                         </div>
                       </div>
                     </sec:authorize>
+
+                    <div class="input-block-wrapper">
+                      <div class="col-md-8 input-block-wrapper__label-wrapper">
+                        <label class="input-block-wrapper__label">2-FA</label>
+                      </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                      <div class="col-md-8 input-block-wrapper__label-wrapper">
+                        <label class="input-block-wrapper__label">Email</label>
+                      </div>
+
+                      <div class="col-md-4 input-block-wrapper__input-wrapper">
+                        <input type="checkbox" name="user2fa" class="input-block-wrapper__input admin-form-input"
+                               readonly disabled
+                               <c:if test="${!userGoogle2fa}">checked</c:if>
+                        />
+                      </div>
+                    </div>
+
+                    <div class="input-block-wrapper">
+                      <div class="col-md-8 input-block-wrapper__label-wrapper">
+                        <label class="input-block-wrapper__label">Google Aunthenticator</label>
+                      </div>
+
+                      <div class="col-md-4 input-block-wrapper__input-wrapper">
+                        <input type="checkbox" name="user2fa" class="input-block-wrapper__input admin-form-input"
+                               readonly disabled
+                               <c:if test="${userGoogle2fa}">checked</c:if>
+                        />
+                      </div>
+                    </div>
                   </fieldset>
                 </div>
               </form:form>
