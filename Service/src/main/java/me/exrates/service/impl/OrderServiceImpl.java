@@ -139,6 +139,7 @@ import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -195,7 +196,11 @@ import static me.exrates.service.util.CollectionUtil.isEmpty;
 
 @Log4j2
 @Service
+@PropertySource("classpath:/orders.properties")
 public class OrderServiceImpl implements OrderService {
+
+    //    @Value("#{BigDecimal.valueOf('${orders.max-exrate-deviation-percent}')}")
+    public BigDecimal exrateDeviationPercent = BigDecimal.valueOf(20);
 
     public static final String BUY = "BUY";
     public static final String SELL = "SELL";
@@ -451,6 +456,7 @@ public class OrderServiceImpl implements OrderService {
             errors.put("exrate_" + errors.size(), "order.fillfield");
         }
 
+
         CurrencyPairLimitDto currencyPairLimit;
         if (!fromDemo) {
             currencyPairLimit = currencyService.findLimitForRoleByCurrencyPairAndType(orderCreateDto.getCurrencyPair().getId(),
@@ -539,6 +545,7 @@ public class OrderServiceImpl implements OrderService {
             errors.put("exrate_" + errors.size(), "order.fillfield");
         }
 
+
         CurrencyPairLimitDto currencyPairLimit = currencyService.findLimitForRoleByCurrencyPairAndType(orderCreateDto.getCurrencyPair().getId(),
                 orderCreateDto.getOperationType());
         if (orderCreateDto.getOrderBaseType() != null && orderCreateDto.getOrderBaseType().equals(OrderBaseType.STOP_LIMIT)) {
@@ -605,6 +612,16 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         return orderValidationDto;
+    }
+
+    private void validateExrate(OrderCreateDto dto, Map<String, Object> errors) {
+        BigDecimal lastRate = new BigDecimal(exchangeRatesHolder.getOne(dto.getCurrencyPair().getId()).getLastOrderRate());
+        BigDecimal bound = lastRate.multiply(exrateDeviationPercent).divide(BigDecimal.valueOf(100), 8, RoundingMode.HALF_UP);
+        BigDecimal delta = dto.getExchangeRate().subtract(lastRate).abs();
+
+        if (delta.compareTo(bound) > 0) {
+            errors.put("exrate_" + errors.size(), "order.invalid_rate");
+        }
     }
 
     private void validateIcoOrder(Map<String, Object> errors, Map<String, Object[]> errorParams, OrderCreateDto orderCreateDto) {
@@ -2336,7 +2353,6 @@ public class OrderServiceImpl implements OrderService {
                                                                          Boolean hideCanceled, String sortByCreated,
                                                                          LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo,
                                                                          Boolean limited, Locale locale) {
-
         int recordsCount = orderDao.getMyOrdersWithStateCount(
                 userId,
                 currencyPair,
@@ -2378,6 +2394,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<OrderWideListDto> getOrdersForExcel(Integer userId, CurrencyPair currencyPair, String currencyName,
                                                     OrderStatus orderStatus, String scope, Integer limit,
                                                     Integer offset, Boolean hideCanceled, String sortByCreated,
@@ -2446,6 +2463,7 @@ public class OrderServiceImpl implements OrderService {
         int index = 1;
         for (OrderWideListDto order : orders) {
             Row row = sheet.createRow(index++);
+
             if (orderStatus == OrderStatus.OPENED) {
                 row.createCell(0, CellType.STRING).setCellValue(getValue(order.getId()));
                 row.createCell(1, CellType.STRING).setCellValue(getValue(order.getDateCreation()));
@@ -2457,7 +2475,9 @@ public class OrderServiceImpl implements OrderService {
                 row.createCell(7, CellType.STRING).setCellValue(getValue(order.getCommissionValue()));
                 row.createCell(8, CellType.STRING).setCellValue(getValue(order.getAmountWithCommission()));
             } else {
-                row.createCell(0, CellType.STRING).setCellValue(getValue(Objects.nonNull(order.getDateStatusModification()) ? order.getDateStatusModification() : order.getDateModification()));
+                row.createCell(0, CellType.STRING).setCellValue(getValue(Objects.nonNull(order.getDateStatusModification())
+                        ? order.getDateStatusModification()
+                        : order.getDateModification()));
                 row.createCell(1, CellType.STRING).setCellValue(getValue(order.getCurrencyPairName()));
                 row.createCell(2, CellType.STRING).setCellValue(getValue(order.getOrderBaseType()));
                 row.createCell(3, CellType.STRING).setCellValue(getValue(order.getOperationType()));
