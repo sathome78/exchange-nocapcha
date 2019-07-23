@@ -175,14 +175,6 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         return xorMessage(txt, key);
     }
 
-    public static void main(String[] args) {
-        AlgorithmServiceImpl algorithmService = new AlgorithmServiceImpl();
-        String str = algorithmService.encodeByKey("mcwecnewfh239hf209f20fhwiufbwpbf2d72hd",
-                "disagree race wild unit sphere differ crowd beach moon decline survey play");
-        System.out.println(str);
-        System.out.println(algorithmService.decodeByKey("mcwecnewfh239hf209f20fhwiufbwpbf2d72hd",str));
-    }
-
     //    У инстанса должна быть iam policy, на чтение aws секретов!!!!!
     //  Подключение к AWS Серверу для получения ключа
     private String getSecret(String code) {
