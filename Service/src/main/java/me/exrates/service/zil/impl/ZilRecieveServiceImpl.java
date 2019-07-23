@@ -16,6 +16,7 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.zil.ZilCurrencyService;
+import me.exrates.service.zil.ZilRecieveService;
 import me.exrates.service.zil.ZilService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
@@ -34,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 @Log4j2(topic = "zil_log")
 @Service
 @Conditional(MonolitConditional.class)
-public class ZilRecieveService {
+public class ZilRecieveServiceImpl implements ZilRecieveService {
 
     private static HttpProvider client;
 
@@ -66,7 +67,7 @@ public class ZilRecieveService {
         client = new HttpProvider("https://api.zilliqa.com/");
         currency = currencyService.findByName(MERCHANT_NAME);
         merchant = merchantService.findByName(MERCHANT_NAME);
-        scheduler.scheduleAtFixedRate(this::checkRefills, 4, 5, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::checkRefills, 4, 15, TimeUnit.MINUTES);
     }
 
     private void checkRefills() {
