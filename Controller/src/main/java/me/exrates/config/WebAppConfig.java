@@ -2075,6 +2075,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(tokensList, "USDT", "USDT", true, ExConvert.Unit.MWEI);
     }
 
+    @Bean(name = "asgServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService asgServiceImpl() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x7a3d3c4f30c46f51b814bee23d970a7c9b757a32");
+        return new EthTokenServiceImpl(tokensList, "ASG", "ASG", true, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     @Conditional(MonolitConditional.class)
