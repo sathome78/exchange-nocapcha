@@ -1,6 +1,7 @@
 package me.exrates.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
@@ -2078,8 +2079,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "asgServiceImpl")
     @Conditional(MonolitConditional.class)
     public EthTokenService asgServiceImpl() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x7a3d3c4f30c46f51b814bee23d970a7c9b757a32");
+        List<String> tokensList = ImmutableList.of("0x7a3d3c4f30c46f51b814bee23d970a7c9b757a32");
         return new EthTokenServiceImpl(tokensList, "ASG", "ASG", true, ExConvert.Unit.ETHER);
     }
 
