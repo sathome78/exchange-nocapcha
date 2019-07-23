@@ -26,6 +26,7 @@ import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.BotTradingSettingsShortDto;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.CandleChartItemDto;
+import me.exrates.model.dto.ComissionCountDto;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.EditMerchantCommissionDto;
@@ -137,6 +138,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -1882,11 +1884,17 @@ public class AdminController {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
-    public static void main(String[] args) {
-        System.out.println(WithdrawStatusEnum.getEndStatesSet()
-                .stream()
-                .map(InvoiceStatus::getCode)
-                .collect(Collectors.toList()));
+    @RequestMapping(value = "/2a8fy7b07dxe44/comission_count", method = GET)
+    public String comissionCount() {
+        return "admin/comissionCount";
+    }
+
+
+    @ResponseBody
+    @RequestMapping(value = "/2a8fy7b07dxe44/comission_count/get", method = GET)
+    public List<ComissionCountDto> getCountedComissions(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd_HH-mm-ss") LocalDateTime from,
+                                                        @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd_HH-mm-ss") LocalDateTime to) {
+        return commissionService.getComissionsCount(from, to);
     }
 
 }
