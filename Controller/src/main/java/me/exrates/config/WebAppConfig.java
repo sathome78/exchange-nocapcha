@@ -553,7 +553,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         javaMailProps.put("mail.smtp.auth", true);
         javaMailProps.put("mail.smtp.starttls.enable", false);
         javaMailProps.put("mail.smtp.ssl.trust", mailSendGridHost);
-        mailSenderImpl.setJavaMailProperties(javaMailProps);
         return mailSenderImpl;
     }
 

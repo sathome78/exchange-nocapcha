@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -66,7 +67,7 @@ public class SendMailServiceImpl implements SendMailService {
     @Value("${support.email}")
     private String supportEmail;
     @Value("${mandrill.email}")
-    private String mandrillEmail;
+    private String noReplyExrateMe;
     @Value("${info.email}")
     private String infoEmail;
     @Value("${listing.email}")
@@ -86,13 +87,13 @@ public class SendMailServiceImpl implements SendMailService {
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void sendMail(Email email) {
-        email.setFrom(mandrillEmail);
+        email.setFrom(noReplyExrateMe);
         SUPPORT_MAIL_EXECUTORS.execute(() -> {
             try {
-                sendMail(email, sesMailSender);
+                sendMail(email, sendGridMailSender);
             } catch (Exception ex) {
                 log.error(ex);
-                sendMail(email, sendGridMailSender);
+                sendMail(email, sesMailSender);
             }
         });
     }
@@ -122,7 +123,7 @@ public class SendMailServiceImpl implements SendMailService {
             }
             case mandrill: {
                 sendMail(email.toBuilder()
-                                .from(mandrillEmail)
+                                .from(noReplyExrateMe)
                                 .build(),
                         mandrillMailSender);
                 break;
@@ -173,7 +174,8 @@ public class SendMailServiceImpl implements SendMailService {
                     message.addAttachment(attachment.getName(), attachment.getResource(), attachment.getContentType());
             }
         });
-        log.info("Email sent: {}, duration {} seconds", email, stopWatch.getTime(TimeUnit.SECONDS));
+        log.info("Email sent: {}, duration {} seconds, sender {}", email, stopWatch.getTime(TimeUnit.SECONDS),
+                ((JavaMailSenderImpl) mailSender).getHost());
     }
 
     @Override
