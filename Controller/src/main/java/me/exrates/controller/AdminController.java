@@ -538,6 +538,8 @@ public class AdminController {
     private DataTable<List<OrderWideListDto>> getOrderWideListDtos(String tableType, CurrencyPair currencyPair, int id, Locale locale, Map<String, String> params) {
         OrderStatus orderStatus = null;
         OperationType operationType = null;
+        boolean isStopOrder = false;
+
         switch (tableType) {
             case "ordersBuyClosed":
                 orderStatus = OrderStatus.CLOSED;
@@ -565,21 +567,28 @@ public class AdminController {
                 break;
             case "stopOrdersCancelled":
                 orderStatus = OrderStatus.CANCELLED;
+                isStopOrder = true;
                 break;
             case "stopOrdersClosed":
                 orderStatus = OrderStatus.CLOSED;
+                isStopOrder = true;
                 break;
             case "stopOrdersOpened":
                 orderStatus = OrderStatus.OPENED;
+                isStopOrder = true;
                 break;
         }
         DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
 
-        final int notFilteredAmount = orderService.getUsersOrdersWithStateForAdminCount(id, currencyPair, orderStatus, operationType, 0, -1, locale);
+        final int notFilteredAmount = isStopOrder
+                ? stopOrderService.getUsersStopOrdersWithStateForAdminCount(id, currencyPair, orderStatus, operationType, 0, -1)
+                : orderService.getUsersOrdersWithStateForAdminCount(id, currencyPair, orderStatus, operationType, 0, -1);
 
         List<OrderWideListDto> filteredOrders = Collections.emptyList();
         if (notFilteredAmount > 0) {
-            filteredOrders = orderService.getUsersOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale);
+            filteredOrders = isStopOrder
+                    ? stopOrderService.getUsersStopOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale)
+                    : orderService.getUsersOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale);
         }
         DataTable<List<OrderWideListDto>> result = new DataTable<>();
         result.setRecordsFiltered(notFilteredAmount);
