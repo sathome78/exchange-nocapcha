@@ -1,6 +1,7 @@
 package me.exrates.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
@@ -2073,6 +2074,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xdac17f958d2ee523a2206206994597c13d831ec7");
         return new EthTokenServiceImpl(tokensList, "USDT", "USDT", true, ExConvert.Unit.MWEI);
+    }
+
+    @Bean(name = "asgServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService asgServiceImpl() {
+        List<String> tokensList = ImmutableList.of("0x7a3d3c4f30c46f51b814bee23d970a7c9b757a32");
+        return new EthTokenServiceImpl(tokensList, "ASG", "ASG", true, ExConvert.Unit.ETHER);
     }
 
     //    Qtum tokens:
