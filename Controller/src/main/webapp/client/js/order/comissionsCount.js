@@ -15,14 +15,16 @@ $(document).ready(function () {
 
     var date = new Date();
     date.setMonth(date.getMonth()-1);
+    var date2 = new Date();
+    date2.setMonth(date2.getMonth()-2);
 
     $('#datetimepicker_start').datetimepicker({
         format: "YYYY-MM-DD_HH-mm-ss",
         formatDate: 'YYYY-MM-DD',
         formatTime: 'HH-mm-ss',
         lang: 'en',
-        value: date,
-        defaultDate: date,
+        value: date2,
+        defaultDate: date2,
         defaultTime: '00:00'
     });
 
@@ -31,8 +33,8 @@ $(document).ready(function () {
         formatDate: 'YYYY-MM-DD',
         formatTime: 'HH-mm-ss',
         lang: 'en',
-        value:new Date(),
-        defaultDate: new Date(),
+        value: date,
+        defaultDate: date,
         defaultTime: '00:00'
     });
 
