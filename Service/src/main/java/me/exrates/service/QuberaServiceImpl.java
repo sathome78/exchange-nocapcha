@@ -397,7 +397,7 @@ public class QuberaServiceImpl implements QuberaService {
         email.setTo(user.getEmail());
         email.setSubject("Deposit for your bank account");
         email.setMessage(msg);
-        sendMailService.sendInfoMail(email);
+        sendMailService.sendMail(email);
     }
 
     @Override
@@ -422,7 +422,7 @@ public class QuberaServiceImpl implements QuberaService {
                 .message(String.format("Dear user, your current bank verification status is %s", eventStatus))
                 .build();
 
-        sendMailService.sendMailMandrill(email);
+        sendMailService.sendMail(email);
         UserNotificationType type;
         String msg = String.format("Dear user, your current bank verification status is %s", eventStatus);
         if (eventStatus.equalsIgnoreCase("SUCCESS")
@@ -502,7 +502,7 @@ public class QuberaServiceImpl implements QuberaService {
         email.setTo(user.getEmail());
         email.setSubject("Deposit fiat");
         email.setMessage(msg);
-        sendMailService.sendInfoMail(email);
+        sendMailService.sendMail(email);
     }
 
     private void sendPersonalMessage(KycStatusResponseDto kycStatusResponseDto, User user) {
