@@ -456,8 +456,6 @@ public interface OrderService {
                                          @Null Integer limit,
                                          @Null Integer offset);
 
-
-    @Transactional(readOnly = true)
     Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair, String currencyName,
                                                                   OrderStatus orderStatus, String scope, Integer limit,
                                                                   Integer offset, Boolean hideCanceled, String sortByCreated,
