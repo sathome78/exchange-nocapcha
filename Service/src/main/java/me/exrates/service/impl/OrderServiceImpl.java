@@ -966,24 +966,28 @@ public class OrderServiceImpl implements OrderService {
                 ExOrder orderForPartialAccept = null;
                 BigDecimal processedAmount = BigDecimal.ZERO;
                 /*maybe Vasil Vasilievich must check acceptableOrders every time? */
-                if (accumulatedAmount.compareTo(orderCreateDto.getAmount()) < 0) {
+                if (accumulatedAmount.compareTo(orderCreateDto.getAmount()) <= 0) {
+                    ordersForAccept.addAll(acceptableOrders);
                     // it's time for Vasil Vasilievich
                     // Vasil Vasilievich will add own orders to list, but at first he must to check avilable user balance in case of buy
                     // Vasil Vasilievich can change users orders to is own orders if it will be profitable
                     // Vasil Vasilievich can throw exception if he doesn’t want to add his orders, and there will be not enough orders in list
-                }
-
-                /*process prepared list of orders*/
-                for (ExOrder order : acceptableOrders) {
-                    processedAmount = processedAmount.add(order.getAmountBase());
-                    if (processedAmount.compareTo(orderCreateDto.getAmount()) < 0) {
-                        ordersForAccept.add(order);
-                    } else if (orderCreateDto.getAmount().compareTo(processedAmount) == 0) {
-                        ordersForAccept.add(order);
-                        break;
-                    } else {
-                        orderForPartialAccept = order;
+                    if (accumulatedAmount.compareTo(orderCreateDto.getAmount()) < 0) {
+                        throw new OrderAcceptionException();
+                    }
+                } else {
+                    /*process prepared list of orders*/
+                    for (ExOrder order : acceptableOrders) {
+                        processedAmount = processedAmount.add(order.getAmountBase());
+                        if (processedAmount.compareTo(orderCreateDto.getAmount()) < 0) {
+                            ordersForAccept.add(order);
+                        } else if (orderCreateDto.getAmount().compareTo(processedAmount) == 0) {
+                            ordersForAccept.add(order);
                             break;
+                        } else {
+                            orderForPartialAccept = order;
+                            break;
+                        }
                     }
                 }
 
