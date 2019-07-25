@@ -179,6 +179,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -843,6 +848,71 @@ public class OrderServiceImpl implements OrderService {
         }
         successMessage.append("\"}");
         return Optional.of(successMessage.toString());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Optional<OrderCreationResultDto> autoAcceptMarketOrders(OrderCreateDto orderCreateDto, Locale locale) {
+        logTransaction("autoAcceptOrders", "begin", orderCreateDto.getCurrencyPair().getId(), -1, null);
+        synchronized (autoAcceptLock) {
+            List<ExOrder> acceptEventsList = new ArrayList<>();
+            ProfileData profileData = new ProfileData(200);
+            try {
+                List<ExOrder> acceptableOrders = orderDao.findAllMarketOrderCandidates(orderCreateDto.getCurrencyPair().getId(), orderCreateDto.getOperationType());
+                profileData.setTime1();
+                logger.debug("acceptableOrders - " + OperationType.getOpposite(orderCreateDto.getOperationType()) + " : " + acceptableOrders);
+                if (acceptableOrders.isEmpty()) {
+                    return Optional.empty();
+                }
+                BigDecimal accumulatedAmount = acceptableOrders
+                        .stream()
+                        .map(ExOrder::getAmountBase)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                List<ExOrder> ordersForAccept = Lists.newArrayList();
+                ExOrder orderForPartialAccept = null;
+                BigDecimal processedAmount = BigDecimal.ZERO;
+                if (accumulatedAmount.compareTo(orderCreateDto.getAmount()) <= 0) {
+                    ordersForAccept.addAll(acceptableOrders);
+                    // it's time for Vasil Vasilievich
+                } else {
+                    for (ExOrder order : acceptableOrders) {
+                        processedAmount = processedAmount.add(order.getAmountBase());
+                        if (processedAmount.compareTo(orderCreateDto.getAmount()) <= 0) {
+                            ordersForAccept.add(order);
+                        } else {
+                            orderForPartialAccept = order;
+                            break;
+                        }
+                    }
+                }
+
+                OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
+                if (ordersForAccept.size() > 0) {
+                    List<Integer> idsToAccept = ordersForAccept
+                            .stream()
+                            .map(ExOrder::getId)
+                            .collect(toList());
+                    acceptOrdersList1(orderCreateDto.getUserId(), idsToAccept, locale, acceptEventsList, true);
+                    orderCreationResultDto.setAutoAcceptedQuantity(ordersForAccept.size());
+                    orderCreationResultDto.setFullyAcceptedOrdersIds(idsToAccept);
+                }
+                if (Objects.nonNull(orderForPartialAccept)) {
+                    orderCreationResultDto.setPartiallyAcceptedOrderFullAmount(orderForPartialAccept.getAmountBase());
+                    orderCreationResultDto.setPartiallyAcceptedId(orderForPartialAccept.getId());
+                    BigDecimal partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, processedAmount, locale, acceptEventsList, orderCreationResultDto);
+                    orderCreationResultDto.setPartiallyAcceptedAmount(partialAcceptResult);
+
+
+                }
+                if (!acceptEventsList.isEmpty()) {
+                    eventPublisher.publishEvent(new AutoAcceptEventsList(acceptEventsList, orderCreateDto.getCurrencyPair().getId()));
+                }
+                return Optional.of(orderCreationResultDto);
+            } finally {
+                profileData.checkAndLog("slow creation order: " + orderCreateDto + " profile: " + profileData);
+            }
+        }
     }
 
     @Override
