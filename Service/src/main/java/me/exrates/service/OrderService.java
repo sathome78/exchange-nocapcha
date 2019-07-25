@@ -116,7 +116,14 @@ public interface OrderService {
     OrderCreationResultDto prepareAndCreateOrderRest(String currencyPairName, OperationType orderType,
                                                      BigDecimal amount, BigDecimal exrate, String userEmail);
 
+    @Transactional
+    OrderCreationResultDto prepareAndCreateMarketOrder(String currencyPairName, OperationType orderType,
+                                                       BigDecimal amount, String userEmail);
+
     Optional<String> autoAccept(OrderCreateDto orderCreateDto, Locale locale);
+
+    @Transactional(rollbackFor = Exception.class)
+    Optional<OrderCreationResultDto> autoAcceptMarketOrders(OrderCreateDto orderCreateDto, Locale locale);
 
     Optional<OrderCreationResultDto> autoAcceptOrders(OrderCreateDto orderCreateDto, Locale locale);
 
