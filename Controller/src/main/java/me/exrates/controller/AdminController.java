@@ -621,7 +621,7 @@ public class AdminController {
         }
 
         model.addObject("user", user);
-        model.addObject("user2fa", g2faService.isGoogleAuthenticatorEnable(user.getId()));
+        model.addObject("userGoogle2fa", g2faService.isGoogleAuthenticatorEnable(user.getId()));
         model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
         model.addObject("currencies", currencyService.findAllCurrenciesWithHidden());
         model.addObject("currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL));
