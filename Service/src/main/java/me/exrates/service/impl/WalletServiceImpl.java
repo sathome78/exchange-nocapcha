@@ -940,7 +940,7 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
-    public BigDecimal getActiveBalanceAndBlockByWaaletId(Integer walletId) {
+    public BigDecimal getActiveBalanceAndBlockByWalletId(Integer walletId) {
         return walletDao.getActiveBalanceAndBlockByWalletId(walletId);
     }
 

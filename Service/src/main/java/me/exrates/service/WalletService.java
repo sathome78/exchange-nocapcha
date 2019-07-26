@@ -186,5 +186,5 @@ public interface WalletService {
 
     boolean moveBalanceFromIeoReservedToActive(int userId, String currencyName);
 
-    BigDecimal getActiveBalanceAndBlockByWaaletId(Integer walletId);
+    BigDecimal getActiveBalanceAndBlockByWalletId(Integer walletId);
 }

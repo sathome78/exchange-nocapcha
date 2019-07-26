@@ -2315,8 +2315,8 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<ExOrder> findAllMarketOrderCandidates(Integer currencyId, OperationType operationType) {
-        String sql = "SELECT E.id, E.currency_pair_id, E.operation_type_id, E.exrate, E.amount_base, E.amount_convert, E.commission_fixed_amount," +
-                " E.date_creation,E.date_acception" +
+        String sql = "SELECT E.id, E.user_id, E.currency_pair_id, E.operation_type_id, E.exrate, E.amount_base, E.amount_convert, E.commission_fixed_amount," +
+                " E.commission_id, E.date_creation, E.status_id, E.base_type " +
                 " FROM EXORDERS E" +
                 " JOIN USER U ON U.id = E.user_id" +
                 " JOIN USER_ROLE_SETTINGS URS ON URS.user_role_id = U.roleid" +
@@ -2336,16 +2336,12 @@ public class OrderDaoImpl implements OrderDao {
             exOrder.setCurrencyPairId(rs.getInt("currency_pair_id"));
             exOrder.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
             exOrder.setExRate(rs.getBigDecimal("exrate"));
-            exOrder.setExRate(rs.getBigDecimal("exrate"));
             exOrder.setAmountBase(rs.getBigDecimal("amount_base"));
             exOrder.setAmountConvert(rs.getBigDecimal("amount_convert"));
             exOrder.setComissionId(rs.getInt("commission_id"));
             exOrder.setCommissionFixedAmount(rs.getBigDecimal("commission_fixed_amount"));
-            exOrder.setUserAcceptorId(rs.getInt("user_acceptor_id"));
             exOrder.setDateCreation(convertTimeStampToLocalDateTime(rs, "date_creation"));
-            exOrder.setDateAcception(convertTimeStampToLocalDateTime(rs, "date_acception"));
             exOrder.setStatus(OrderStatus.convert(rs.getInt("status_id")));
-            exOrder.setSourceId(rs.getInt("order_source_id"));
             exOrder.setOrderBaseType(OrderBaseType.valueOf(rs.getString("base_type")));
             return exOrder;
         };

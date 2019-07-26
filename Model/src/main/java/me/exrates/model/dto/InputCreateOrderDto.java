@@ -27,7 +27,6 @@ public class InputCreateOrderDto {
 
     private String baseType;
 
-    @NotNull
     private BigDecimal total;
 
     private BigDecimal stop;
