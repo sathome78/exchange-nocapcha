@@ -1053,8 +1053,21 @@
         <logger name="inout" level="ALL" additivity="false">
             <AppenderRef ref="inout"/>
         </logger>
-        <logger name="org.springframework" level="INFO" additivity="false">
-        </logger>
+
+        <logger name="org.springframework" level="INFO" additivity="false"/>
+        <logger name="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" level="INFO" additivity="false"/>
+        <logger name="org.springframework.context.support.PostProcessorRegistrationDelegate$BeanPostProcessorChecker" level="INFO" additivity="false"/>
+
+        <category name="org.springframework">
+            <priority value="OFF"/>
+        </category>
+        <category name="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor">
+            <priority value="OFF"/>
+        </category>
+        <category name="org.springframework.context.support.PostProcessorRegistrationDelegate$BeanPostProcessorChecker">
+            <priority value="OFF"/>
+        </category>
+
         <Root level="INFO">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
