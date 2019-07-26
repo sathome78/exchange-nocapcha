@@ -1076,8 +1076,8 @@
             <priority value="OFF"/>
         </category>
 
-        <Root level="DEBUG">
-            <AppenderRef ref="Console"/>
+        <Root level="INFO">
+            <!--<AppenderRef ref="Console"/>-->
             <AppenderRef ref="Logs"/>
         </Root>
     </Loggers>
