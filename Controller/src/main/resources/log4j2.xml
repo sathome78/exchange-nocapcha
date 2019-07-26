@@ -1056,10 +1056,10 @@
             <AppenderRef ref="inout"/>
         </logger>
 
-        <logger name="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" level="OFF" additivity="false">
+        <logger name="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>
         </logger>
-        <logger name="org.springframework.context.support.PostProcessorRegistrationDelegate" level="OFF" additivity="false">
+        <logger name="org.springframework.context.support.PostProcessorRegistrationDelegate" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>
         </logger>
 
