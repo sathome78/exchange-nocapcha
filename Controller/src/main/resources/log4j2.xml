@@ -1062,12 +1062,12 @@
         <logger name="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" level="ALL" additivity="false">
             <level value="OFF"/>
         </logger>
-        <logger name="org.springframework.context.support.PostProcessorRegistrationDelegate$BeanPostProcessorChecker" level="ALL" additivity="false">
+        <logger name="org.springframework.context.support.PostProcessorRegistrationDelegate" level="ALL" additivity="false">
             <level value="OFF"/>
         </logger>
 
         <Root level="INFO">
-            <!--<AppenderRef ref="Console"/>-->
+            <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
         </Root>
     </Loggers>
