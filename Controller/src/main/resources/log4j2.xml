@@ -778,7 +778,7 @@
             <AppenderRef ref="Logs"/>
             <AppenderRef ref="Console"/>
         </logger>
-        <logger name="org.springframework.security" level="INFO" additivity="false">
+        <logger name="org.springframework.security" level="ERROR" additivity="false">
             <AppenderRef ref="Logs"/>
         </logger>
         <logger name="org.springframework.jdbc.core.JdbcTemplate" level="ERROR" additivity="false">
@@ -1056,16 +1056,10 @@
             <AppenderRef ref="inout"/>
         </logger>
 
-        <logger name="org.springframework" level="INFO" additivity="false">
-            <level value="OFF"/>
+        <logger name="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" level="OFF" additivity="false">
             <AppenderRef ref="Console"/>
         </logger>
-        <logger name="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" level="ALL" additivity="false">
-            <level value="OFF"/>
-            <AppenderRef ref="Console"/>
-        </logger>
-        <logger name="org.springframework.context.support.PostProcessorRegistrationDelegate" level="ALL" additivity="false">
-            <level value="OFF"/>
+        <logger name="org.springframework.context.support.PostProcessorRegistrationDelegate" level="OFF" additivity="false">
             <AppenderRef ref="Console"/>
         </logger>
 
