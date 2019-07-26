@@ -27,6 +27,7 @@ import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
+import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.OrderBasicInfoDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.OrderCommissionsDto;
@@ -179,11 +180,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -867,23 +863,21 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderCreationResultDto prepareAndCreateMarketOrder(String currencyPairName, OperationType orderType,
-                                                              BigDecimal amount, String userEmail) {
+    public String createMarketOrder(OrderCreateDto orderCreateDto) {
         synchronized (restOrderCreationLock) {
-            log.info(String.format("Start creating market order: %s %s amount %s", currencyPairName, orderType.name(), amount));
-            Locale locale = userService.getUserLocaleForMobile(userEmail);
-            CurrencyPair currencyPair = currencyService.getCurrencyPairByName(currencyPairName);
-            OrderCreateDto orderCreateDto = prepareMarketOrderRest(new OrderCreationParamsDto(currencyPair.getId(), orderType, amount), userEmail);
-            Optional<OrderCreationResultDto> autoAcceptResult = autoAcceptMarketOrders(orderCreateDto, locale);
+            Optional<OrderCreationResultDto> autoAcceptResult = autoAcceptMarketOrders(orderCreateDto, Locale.ENGLISH);
             log.info("Auto accept result: " + autoAcceptResult);
-            return autoAcceptResult.orElseThrow(OrderAcceptionException::new);
+            OrderCreationResultDto result = autoAcceptResult.orElseThrow(OrderAcceptionException::new);
+            return String.format("Accepted %s orders", result.getAutoAcceptedQuantity());
         }
     }
 
-    private OrderCreateDto prepareMarketOrderRest(OrderCreationParamsDto orderCreationParamsDto, String userEmail) {
+    @Override
+    public OrderCreateDto prepareMarketOrder(InputCreateOrderDto inputOrder) {
+        String userEmail = userService.getUserEmailFromSecurityContext();
         Currency spendCurrency = null;
-        OperationType orderType = orderCreationParamsDto.getOrderType();
-        CurrencyPair activeCurrencyPair = currencyService.findCurrencyPairById(orderCreationParamsDto.getCurrencyPairId());
+        OperationType orderType = OperationType.valueOf(inputOrder.getOrderType());
+        CurrencyPair activeCurrencyPair = currencyService.findCurrencyPairById(inputOrder.getCurrencyPairId());
         if (orderType == OperationType.SELL) {
             spendCurrency = activeCurrencyPair.getCurrency1();
         } else if (orderType == OperationType.BUY) {
@@ -894,7 +888,7 @@ public class OrderServiceImpl implements OrderService {
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         orderCreateDto.setOperationType(orderType);
         orderCreateDto.setCurrencyPair(activeCurrencyPair);
-        orderCreateDto.setAmount(orderCreationParamsDto.getAmount());
+        orderCreateDto.setAmount(inputOrder.getAmount());
         orderCreateDto.setUserId(walletsAndCommissions.getUserId());
         orderCreateDto.setCurrencyPair(activeCurrencyPair);
         orderCreateDto.setOrderBaseType(OrderBaseType.MARKET);

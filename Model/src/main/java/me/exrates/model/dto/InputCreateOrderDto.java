@@ -21,10 +21,8 @@ public class InputCreateOrderDto {
     @NotNull
     private BigDecimal amount;
 
-    @NotNull
     private BigDecimal rate;
 
-    @NotNull
     private BigDecimal commission;
 
     private String baseType;

@@ -13,6 +13,7 @@ import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
+import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.OrderBasicInfoDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.OrderCommissionsDto;
@@ -116,9 +117,11 @@ public interface OrderService {
     OrderCreationResultDto prepareAndCreateOrderRest(String currencyPairName, OperationType orderType,
                                                      BigDecimal amount, BigDecimal exrate, String userEmail);
 
+
     @Transactional
-    OrderCreationResultDto prepareAndCreateMarketOrder(String currencyPairName, OperationType orderType,
-                                                       BigDecimal amount, String userEmail);
+    String createMarketOrder(OrderCreateDto orderCreateDto);
+
+    OrderCreateDto prepareMarketOrder(InputCreateOrderDto inputOrder);
 
     Optional<String> autoAccept(OrderCreateDto orderCreateDto, Locale locale);
 
