@@ -1058,6 +1058,7 @@
 
         <logger name="org.springframework" level="INFO" additivity="false">
             <level value="OFF"/>
+            <AppenderRef ref="Console"/>
         </logger>
         <logger name="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" level="ALL" additivity="false">
             <level value="OFF"/>
