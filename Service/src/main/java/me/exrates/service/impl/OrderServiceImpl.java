@@ -989,7 +989,7 @@ public class OrderServiceImpl implements OrderService {
                         BigDecimal convertedAmountForAccept = doAction(amountForPartialAccept, orderForPartialAccept.getExRate(), ActionType.MULTIPLY);
                         convertAmount = convertAmount.add(convertedAmountForAccept);
                     }
-                    if (convertAmount.compareTo(activeBalance) >= 0)
+                    if (convertAmount.compareTo(activeBalance) > 0)
                         throw new NotEnoughUserWalletMoneyException();
                 }
 
@@ -1099,10 +1099,11 @@ public class OrderServiceImpl implements OrderService {
         User userById = userService.getUserById(orderForPartialAccept.getUserId());
         OrderCreateDto accepted = prepareNewOrder(newOrder.getCurrencyPair(), orderForPartialAccept.getOperationType(),
                 userById.getEmail(), amountForPartialAccept,
-                orderForPartialAccept.getExRate(), orderForPartialAccept.getId(), newOrder.getOrderBaseType());
+                orderForPartialAccept.getExRate(), orderForPartialAccept.getId(),
+                orderForPartialAccept.getOrderBaseType());
         OrderCreateDto remainder = prepareNewOrder(newOrder.getCurrencyPair(), orderForPartialAccept.getOperationType(),
                 userById.getEmail(), orderForPartialAccept.getAmountBase().subtract(amountForPartialAccept),
-                orderForPartialAccept.getExRate(), orderForPartialAccept.getId(), newOrder.getOrderBaseType());
+                orderForPartialAccept.getExRate(), orderForPartialAccept.getId(), orderForPartialAccept.getOrderBaseType());
         int acceptedId = createOrder(accepted, CREATE, acceptEventsList, true);
         logTransaction("acceptPartially", "middle", orderForPartialAccept.getCurrencyPairId(), accepted.getOrderId(), null);
         int remainderId = createOrder(remainder, CREATE_SPLIT, acceptEventsList, true);
