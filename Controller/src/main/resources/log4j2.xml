@@ -1066,16 +1066,6 @@
             <level value="OFF"/>
         </logger>
 
-        <category name="org.springframework">
-            <priority value="OFF"/>
-        </category>
-        <category name="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor">
-            <priority value="OFF"/>
-        </category>
-        <category name="org.springframework.context.support.PostProcessorRegistrationDelegate$BeanPostProcessorChecker">
-            <priority value="OFF"/>
-        </category>
-
         <Root level="INFO">
             <!--<AppenderRef ref="Console"/>-->
             <AppenderRef ref="Logs"/>
