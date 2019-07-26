@@ -970,11 +970,6 @@ public class OrderServiceImpl implements OrderService {
                     ordersForAccept.addAll(acceptableOrders);
                     // it's time for Vasil Vasilievich
                     // Vasil Vasilievich will add own orders to list, but at first he must to check avilable user balance in case of buy
-                    // Vasil Vasilievich can change users orders to is own orders if it will be profitable
-                    // Vasil Vasilievich can throw exception if he doesn’t want to add his orders, and there will be not enough orders in list
-                    if (accumulatedAmount.compareTo(orderCreateDto.getAmount()) < 0) {
-                        throw new OrderAcceptionException();
-                    }
                 } else {
                     /*process prepared list of orders*/
                     for (ExOrder order : acceptableOrders) {
