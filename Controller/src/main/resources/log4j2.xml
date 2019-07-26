@@ -1054,9 +1054,15 @@
             <AppenderRef ref="inout"/>
         </logger>
 
-        <logger name="org.springframework" level="INFO" additivity="false"/>
-        <logger name="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" level="INFO" additivity="false"/>
-        <logger name="org.springframework.context.support.PostProcessorRegistrationDelegate$BeanPostProcessorChecker" level="INFO" additivity="false"/>
+        <logger name="org.springframework" level="INFO" additivity="false">
+            <level value="OFF"/>
+        </logger>
+        <logger name="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" level="INFO" additivity="false">
+            <level value="OFF"/>
+        </logger>
+        <logger name="org.springframework.context.support.PostProcessorRegistrationDelegate$BeanPostProcessorChecker" level="INFO" additivity="false">
+            <level value="OFF"/>
+        </logger>
 
         <category name="org.springframework">
             <priority value="OFF"/>
