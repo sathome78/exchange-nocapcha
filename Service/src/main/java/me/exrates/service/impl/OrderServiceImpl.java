@@ -2,7 +2,6 @@ package me.exrates.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CallBackLogDao;
@@ -82,6 +81,7 @@ import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.TransactionStatus;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.WalletTransferStatus;
+import me.exrates.model.ngExceptions.MarketOrderAcceptionException;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
@@ -868,7 +868,11 @@ public class OrderServiceImpl implements OrderService {
         synchronized (restOrderCreationLock) {
             Optional<OrderCreationResultDto> autoAcceptResult = autoAcceptMarketOrders(orderCreateDto, Locale.ENGLISH);
             log.info("Auto accept result: " + autoAcceptResult);
-            OrderCreationResultDto result = autoAcceptResult.orElseThrow(OrderAcceptionException::new);
+            OrderCreationResultDto result = autoAcceptResult.orElseThrow(() -> {
+                final String message = String.format("Failed to find open %s limit orders for currency pair id: %d", orderCreateDto.getOperationType().name(), orderCreateDto.getCurrencyPair().getId());
+                log.warn(message);
+                return new MarketOrderAcceptionException(message);
+            });
             return String.format("Accepted %s orders", result.getAutoAcceptedQuantity());
         }
     }
