@@ -112,7 +112,6 @@ public class NgDashboardController {
     @PostMapping("/order")
     @CheckUserAuthority(authority = UserOperationAuthority.TRADING)
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
-        System.out.println("start create order");
         OrderBaseType baseType = OrderBaseType.valueOf(inputOrder.getBaseType());
         String result;
         switch (baseType) {

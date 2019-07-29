@@ -56,6 +56,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -313,11 +314,14 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public boolean updateOrder(ExOrder exOrder) {
         String sql = "update EXORDERS set user_acceptor_id=:user_acceptor_id, status_id=:status_id, " +
-                " date_acception=NOW()  " +
+                " date_acception=NOW(), counter_order_type = :counterType " +
                 " where id = :id";
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("user_acceptor_id", String.valueOf(exOrder.getUserAcceptorId()));
         namedParameters.put("status_id", String.valueOf(exOrder.getStatus().getStatus()));
+        namedParameters.put("counterType", exOrder.getCounterOrderBaseType() == null
+                ? OrderBaseType.LIMIT.name()
+                : exOrder.getCounterOrderBaseType().name());
         namedParameters.put("id", String.valueOf(exOrder.getId()));
         int result = masterJdbcTemplate.update(sql, namedParameters);
         return result > 0;
@@ -1070,6 +1074,7 @@ public class OrderDaoImpl implements OrderDao {
                 "             o.status_modification_date, " +
                 "             o.currency_pair_id, " +
                 "             o.base_type, " +
+                "             o.counter_order_type, " +
                 "             cp.name                AS currency_pair_name, " +
                 "             com.value              AS commission_value, " +
                 "             o.date_creation        AS date_creation, " +
@@ -1100,6 +1105,7 @@ public class OrderDaoImpl implements OrderDao {
                 "             null, " +
                 "             so.currency_pair_id, " +
                 "             'STOP_LIMIT', " +
+                "             'MARKET', " +
                 "             cp.name                       AS currency_pair_name, " +
                 "             com.value                     AS commission_value, " +
                 "             so.date_creation              AS date_creation, " +
@@ -1137,74 +1143,7 @@ public class OrderDaoImpl implements OrderDao {
             params.put("currency_name_part", String.join(StringUtils.EMPTY, "%", currencyName, "%"));
         }
 
-        return slaveJdbcTemplate.query(sqlWithBothOrders, params, (rs, rowNum) -> {
-            OrderWideListDto orderWideListDto = new OrderWideListDto();
-            if (Objects.equals(rs.getString("base_type"), "LIMIT")) {
-                orderWideListDto.setId(rs.getInt("id"));
-                orderWideListDto.setUserId(rs.getInt("user_id"));
-                orderWideListDto.setOperationTypeEnum(OperationType.convert(rs.getInt("operation_type_id")));
-                orderWideListDto.setExExchangeRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("exrate"), locale, 2));
-                orderWideListDto.setAmountBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_base"), locale, 2));
-                orderWideListDto.setAmountConvert(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_convert"), locale, 2));
-                orderWideListDto.setComissionId(rs.getInt("commission_id"));
-                orderWideListDto.setCommissionFixedAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_fixed_amount"), locale, 2));
-                BigDecimal amountWithCommission = rs.getBigDecimal("amount_convert");
-                orderWideListDto.setCommissionValue(rs.getDouble("commission_value"));
-                if (Objects.equals(OperationType.SELL, orderWideListDto.getOperationTypeEnum())) {
-                    amountWithCommission = BigDecimalProcessing.doAction(amountWithCommission, rs.getBigDecimal("commission_fixed_amount"), ActionType.SUBTRACT);
-                } else if (Objects.equals(OperationType.BUY, orderWideListDto.getOperationTypeEnum())) {
-                    amountWithCommission = BigDecimalProcessing.doAction(amountWithCommission, rs.getBigDecimal("commission_fixed_amount"), ActionType.ADD);
-                }
-                orderWideListDto.setAmountWithCommission(BigDecimalProcessing.formatLocale(amountWithCommission, locale, 2));
-                orderWideListDto.setUserAcceptorId(rs.getInt("user_acceptor_id"));
-                orderWideListDto.setDateCreation(isNull(rs.getTimestamp("date_creation"))
-                        ? null
-                        : rs.getTimestamp("date_creation").toLocalDateTime());
-                orderWideListDto.setDateAcception(isNull(rs.getTimestamp("date_acception"))
-                        ? null
-                        : rs.getTimestamp("date_acception").toLocalDateTime());
-                orderWideListDto.setStatus(OrderStatus.convert(rs.getInt("status_id")));
-                orderWideListDto.setDateStatusModification(isNull(rs.getTimestamp("status_modification_date"))
-                        ? null
-                        : rs.getTimestamp("status_modification_date").toLocalDateTime());
-                orderWideListDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
-                orderWideListDto.setCurrencyPairName(rs.getString("currency_pair_name"));
-                orderWideListDto.setOrderBaseType(OrderBaseType.valueOf(rs.getString("base_type")));
-                orderWideListDto.setOperationType(String.join(" ", orderWideListDto.getOperationTypeEnum().name(), orderWideListDto.getOrderBaseType().name()));
-            } else {
-                orderWideListDto.setId(rs.getInt("id"));
-                orderWideListDto.setUserId(rs.getInt("user_id"));
-                orderWideListDto.setOperationTypeEnum(OperationType.convert(rs.getInt("operation_type_id")));
-                orderWideListDto.setAmountBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_base"), locale, 2));
-                orderWideListDto.setAmountConvert(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_convert"), locale, 2));
-                orderWideListDto.setComissionId(rs.getInt("commission_id"));
-                orderWideListDto.setCommissionFixedAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_fixed_amount"), locale, 2));
-                BigDecimal amountWithCommission = rs.getBigDecimal("amount_convert");
-                orderWideListDto.setCommissionValue(rs.getDouble("commission_value"));
-                if (Objects.equals(OperationType.SELL, orderWideListDto.getOperationTypeEnum())) {
-                    amountWithCommission = BigDecimalProcessing.doAction(amountWithCommission, rs.getBigDecimal("commission_fixed_amount"), ActionType.SUBTRACT);
-                } else if (Objects.equals(OperationType.BUY, orderWideListDto.getOperationTypeEnum())) {
-                    amountWithCommission = BigDecimalProcessing.doAction(amountWithCommission, rs.getBigDecimal("commission_fixed_amount"), ActionType.ADD);
-                }
-                orderWideListDto.setAmountWithCommission(BigDecimalProcessing.formatLocale(amountWithCommission, locale, 2));
-                orderWideListDto.setDateCreation(isNull(rs.getTimestamp("date_creation"))
-                        ? null
-                        : rs.getTimestamp("date_creation").toLocalDateTime());
-                orderWideListDto.setStatus(OrderStatus.convert(rs.getInt("status_id")));
-                orderWideListDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
-                orderWideListDto.setCurrencyPairName(rs.getString("currency_pair_name"));
-                orderWideListDto.setStopRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("stop_rate"), locale, 2));
-                orderWideListDto.setLimitRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("limit_rate"), locale, 2));
-                orderWideListDto.setChildOrderId(rs.getInt("child_order_id"));
-                orderWideListDto.setDateModification(isNull(rs.getTimestamp("date_modification"))
-                        ? null
-                        : rs.getTimestamp("date_modification").toLocalDateTime());
-                orderWideListDto.setCurrencyPairName(rs.getString("currency_pair_name"));
-                orderWideListDto.setOrderBaseType(OrderBaseType.valueOf(rs.getString("base_type")));
-                orderWideListDto.setOperationType(String.join(" ", orderWideListDto.getOperationTypeEnum().name(), orderWideListDto.getOrderBaseType().name()));
-            }
-            return orderWideListDto;
-        });
+        return slaveJdbcTemplate.query(sqlWithBothOrders, params, orderWithStateRowMapper(locale, userId));
     }
 
     @Override
@@ -2372,6 +2311,76 @@ public class OrderDaoImpl implements OrderDao {
             return null;
         }
         return timestamp.toLocalDateTime();
+    }
+
+    private RowMapper<OrderWideListDto> orderWithStateRowMapper(Locale locale, int userId) {
+        return (rs, rowNum) -> {
+            OrderWideListDto orderWideListDto = new OrderWideListDto();
+            final int acceptorId = Optional.of(rs.getInt("user_acceptor_id")).orElse(0);
+            String baseType = rs.getString("base_type");
+            final OrderBaseType orderBaseType = OrderBaseType.valueOf(baseType);
+            final OperationType operationType = OperationType.convert(rs.getInt("operation_type_id"));
+            final String counterOrderType = rs.getString("counter_order_type");
+            orderWideListDto.setId(rs.getInt("id"));
+            orderWideListDto.setUserId(rs.getInt("user_id"));
+            orderWideListDto.setUserAcceptorId(acceptorId);
+            orderWideListDto.setOperationTypeEnum(operationType);
+            orderWideListDto.setAmountBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_base"), locale, 2));
+            orderWideListDto.setAmountConvert(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_convert"), locale, 2));
+            orderWideListDto.setComissionId(rs.getInt("commission_id"));
+            orderWideListDto.setCommissionFixedAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_fixed_amount"), locale, 2));
+            BigDecimal amountWithCommission = rs.getBigDecimal("amount_convert");
+            orderWideListDto.setCommissionValue(rs.getDouble("commission_value"));
+            if (Objects.equals(OperationType.SELL, orderWideListDto.getOperationTypeEnum())) {
+                amountWithCommission = BigDecimalProcessing.doAction(amountWithCommission, rs.getBigDecimal("commission_fixed_amount"), ActionType.SUBTRACT);
+            } else if (Objects.equals(OperationType.BUY, orderWideListDto.getOperationTypeEnum())) {
+                amountWithCommission = BigDecimalProcessing.doAction(amountWithCommission, rs.getBigDecimal("commission_fixed_amount"), ActionType.ADD);
+            }
+            orderWideListDto.setAmountWithCommission(BigDecimalProcessing.formatLocale(amountWithCommission, locale, 2));
+            orderWideListDto.setDateCreation(getLocalDateTime(rs, "date_creation"));
+            orderWideListDto.setStatus(OrderStatus.convert(rs.getInt("status_id")));
+            orderWideListDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
+            orderWideListDto.setDateModification(getLocalDateTime(rs, "date_modification"));
+            orderWideListDto.setCurrencyPairName(rs.getString("currency_pair_name"));
+            orderWideListDto.setOrderBaseType(orderBaseType);
+            orderWideListDto.setChildOrderId(rs.getInt("child_order_id"));
+
+            if (StringUtils.isNotEmpty(counterOrderType) && counterOrderType.equalsIgnoreCase(OrderBaseType.MARKET.name())
+                    && userId == acceptorId) {
+                baseType = OrderBaseType.MARKET.name();
+            }
+            if (orderBaseType == OrderBaseType.LIMIT) {
+                orderWideListDto.setExExchangeRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("exrate"), locale, 2));
+                orderWideListDto.setDateAcception(getLocalDateTime(rs, "date_acception"));
+            } else {
+                orderWideListDto.setStopRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("stop_rate"), locale, 2));
+                orderWideListDto.setLimitRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("limit_rate"), locale, 2));
+            }
+            orderWideListDto.setOperationType(String.join(" ", getOrderTypeBasedOnUserId(userId, acceptorId, operationType), baseType));
+            return orderWideListDto;
+        };
+    }
+
+    private String getOrderTypeBasedOnUserId(int userId, int acceptorId, OperationType operationType) {
+        if (userId == acceptorId) {
+            if (operationType == OperationType.BUY) {
+                return OperationType.SELL.name();
+            }
+            return OperationType.BUY.name();
+        }
+        return operationType.name();
+    }
+
+    private LocalDateTime getLocalDateTime(ResultSet rs, String columnName) {
+        try {
+            final Timestamp rsTimestamp = rs.getTimestamp(columnName);
+            if (nonNull(rsTimestamp)) {
+                return rsTimestamp.toLocalDateTime();
+            }
+        } catch (SQLException e) {
+            log.warn("Failed to get timestamp data for column " + columnName, e);
+        }
+        return null;
     }
 
 }

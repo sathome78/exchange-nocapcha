@@ -11,7 +11,6 @@ public enum OrderBaseType {
 
     LIMIT(1), STOP_LIMIT(2), ICO(3), MARKET(4);
 
-
     private int code;
 
     public int getType() {

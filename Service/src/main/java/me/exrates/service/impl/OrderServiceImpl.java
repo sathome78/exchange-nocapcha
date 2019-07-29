@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CallBackLogDao;
@@ -426,7 +427,8 @@ public class OrderServiceImpl implements OrderService {
         orderCreateDto.setOrderBaseType(baseType);
         /*todo get 0 comission values from db*/
         /*todo 0 comission for the edr pairs, temporary*/
-        if (baseType == OrderBaseType.ICO || orderCreateDto.getCurrencyPair().getName().contains("EDR")) {
+        if (baseType == OrderBaseType.ICO
+                || (Objects.nonNull(orderCreateDto.getCurrencyPair().getName()) && orderCreateDto.getCurrencyPair().getName().contains("EDR"))) {
             walletsAndCommissions.setCommissionValue(BigDecimal.ZERO);
             walletsAndCommissions.setCommissionId(24);
         }
@@ -1000,7 +1002,7 @@ public class OrderServiceImpl implements OrderService {
                             .map(ExOrder::getId)
                             .collect(toList());
 
-                    idsToAccept.forEach(p -> acceptOrder(orderCreateDto.getUserId(), p, locale, true, acceptEventsList, true));
+                    idsToAccept.forEach(p -> acceptOrder(orderCreateDto.getUserId(), p, locale, true, acceptEventsList, true, OrderBaseType.MARKET));
 
                     orderCreationResultDto.setAutoAcceptedQuantity(ordersForAccept.size());
                     orderCreationResultDto.setFullyAcceptedOrdersIds(idsToAccept);
@@ -1008,7 +1010,7 @@ public class OrderServiceImpl implements OrderService {
                 if (Objects.nonNull(orderForPartialAccept)) {
                     orderCreationResultDto.setPartiallyAcceptedOrderFullAmount(orderForPartialAccept.getAmountBase());
                     orderCreationResultDto.setPartiallyAcceptedId(orderForPartialAccept.getId());
-                    BigDecimal partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, processedAmount, locale, acceptEventsList, orderCreationResultDto);
+                    BigDecimal partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, processedAmount, locale, acceptEventsList, orderCreationResultDto, OrderBaseType.MARKET);
                     orderCreationResultDto.setPartiallyAcceptedAmount(partialAcceptResult);
                 }
 
@@ -1063,7 +1065,7 @@ public class OrderServiceImpl implements OrderService {
                 if (Objects.nonNull(orderForPartialAccept)) {
                     orderCreationResultDto.setPartiallyAcceptedOrderFullAmount(orderForPartialAccept.getAmountBase());
                     orderCreationResultDto.setPartiallyAcceptedId(orderForPartialAccept.getId());
-                    BigDecimal partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, cumulativeSum, locale, acceptEventsList, orderCreationResultDto);
+                    BigDecimal partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, cumulativeSum, locale, acceptEventsList, orderCreationResultDto, OrderBaseType.LIMIT);
                     orderCreationResultDto.setPartiallyAcceptedAmount(partialAcceptResult);
                 } else if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0 && orderCreateDto.getOrderBaseType() != OrderBaseType.ICO) {
                     User user = userService.getUserById(orderCreateDto.getUserId());
@@ -1091,7 +1093,8 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    private BigDecimal acceptPartially(OrderCreateDto newOrder, ExOrder orderForPartialAccept, BigDecimal cumulativeSum, Locale locale, List<ExOrder> acceptEventsList, OrderCreationResultDto orderCreationResultDto) {
+    private BigDecimal acceptPartially(OrderCreateDto newOrder, ExOrder orderForPartialAccept, BigDecimal cumulativeSum, Locale locale, List<ExOrder> acceptEventsList,
+                                       OrderCreationResultDto orderCreationResultDto, OrderBaseType counterType) {
         logTransaction("acceptPartially", "begin", orderForPartialAccept.getCurrencyPairId(), orderForPartialAccept.getId(), null);
         deleteOrderForPartialAccept(orderForPartialAccept.getId(), acceptEventsList);
 
@@ -1107,7 +1110,7 @@ public class OrderServiceImpl implements OrderService {
         int acceptedId = createOrder(accepted, CREATE, acceptEventsList, true);
         logTransaction("acceptPartially", "middle", orderForPartialAccept.getCurrencyPairId(), accepted.getOrderId(), null);
         int remainderId = createOrder(remainder, CREATE_SPLIT, acceptEventsList, true);
-        acceptOrder(newOrder.getUserId(), acceptedId, locale, false, acceptEventsList, true);
+        acceptOrder(newOrder.getUserId(), acceptedId, locale, false, acceptEventsList, true, counterType);
         orderCreationResultDto.setOrderIdToOpen(remainderId);
         orderCreationResultDto.setOrderIdToAccept(acceptedId);
         logTransaction("acceptPartially", "end", orderForPartialAccept.getCurrencyPairId(), acceptedId, null);
@@ -1231,7 +1234,6 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(rollbackFor = {Exception.class})
     void acceptOrder(int userAcceptorId, int orderId, Locale locale, List<ExOrder> eventsList, boolean partialAccept) {
         acceptOrder(userAcceptorId, orderId, locale, true, eventsList, partialAccept);
-
     }
 
     @Override
@@ -1241,7 +1243,6 @@ public class OrderServiceImpl implements OrderService {
         acceptOrdersList(userId, Collections.singletonList(orderId), locale, null, false);
     }
 
-
     @Override
     @Transactional(rollbackFor = {Exception.class})
     public void acceptManyOrdersByAdmin(String acceptorEmail, List<Integer> orderIds, Locale locale) {
@@ -1249,11 +1250,15 @@ public class OrderServiceImpl implements OrderService {
         acceptOrdersList(userId, orderIds, locale, null, false);
     }
 
-
     private void acceptOrder(int userAcceptorId, int orderId, Locale locale, boolean sendNotification, List<ExOrder> eventsList, boolean partialAccept) {
+        acceptOrder(userAcceptorId, orderId, locale, sendNotification, eventsList, partialAccept, OrderBaseType.LIMIT);
+    }
+
+    private void acceptOrder(int userAcceptorId, int orderId, Locale locale, boolean sendNotification, List<ExOrder> eventsList, boolean partialAccept, OrderBaseType counterType) {
         try {
             logTransaction("acceptOrder", "begin", 0, orderId, null);
             ExOrder exOrder = this.getOrderById(orderId);
+            exOrder.setCounterOrderBaseType(counterType);
 
             checkAcceptPermissionForUser(userAcceptorId, exOrder.getUserId(), locale);
 
@@ -1663,7 +1668,6 @@ public class OrderServiceImpl implements OrderService {
         logTransaction("updateOrder", "begin", exOrder.getCurrencyPairId(), exOrder.getId(), null);
         return orderDao.updateOrder(exOrder);
     }
-
 
     public List<CoinmarketApiDto> getCoinmarketData(String currencyPairName, BackDealInterval backDealInterval) {
         final List<CoinmarketApiDto> result = orderDao.getCoinmarketData(currencyPairName);
