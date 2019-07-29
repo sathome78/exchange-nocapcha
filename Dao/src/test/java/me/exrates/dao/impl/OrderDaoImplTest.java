@@ -358,6 +358,7 @@ public class OrderDaoImplTest extends DataComparisonTest {
         assertTrue(actual);
     }
 
+    @Ignore
     @Test
     public void lockOrdersListForAcception_False() {
         boolean actual = orderDao.lockOrdersListForAcception(Collections.singletonList(8));
@@ -557,7 +558,6 @@ public class OrderDaoImplTest extends DataComparisonTest {
                 "(3,\'BTC/USD\',1,2,\'BTC/USD\');";
 
         prepareTestData(sql1, sql2);
-
 
 
         Integer userId = 16;
