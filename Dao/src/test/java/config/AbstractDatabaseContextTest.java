@@ -40,7 +40,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -270,6 +269,7 @@ public abstract class AbstractDatabaseContextTest {
         populator.addScript(new ClassPathResource("db/POPULATE_USER_ROLE_REPORT_GROUP_FEATURE.sql"));
         populator.addScript(new ClassPathResource("db/POPULATE_USER_ROLE.sql"));
         populator.addScript(new ClassPathResource("db/POPULATE_OPERATION_TYPE.sql"));
+        populator.addScript(new ClassPathResource("db/ADD_COLUMN_COUNTER_ORDER_TYPE_TO_EXORDERS_TABLE.sql"));
         // temp
         populator.addScript(new ClassPathResource("db/TEMPORARY_DELETE_AND_ADD_FIELDS_TO_API_AUTH_TOKEN_TABLE.sql"));
         populator.populate(rootDataSource.getConnection());
