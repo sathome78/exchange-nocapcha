@@ -868,7 +868,11 @@ public class OrderServiceImpl implements OrderService {
         synchronized (restOrderCreationLock) {
             Optional<OrderCreationResultDto> autoAcceptResult = autoAcceptMarketOrders(orderCreateDto, Locale.ENGLISH);
             log.info("Auto accept result: " + autoAcceptResult);
-            OrderCreationResultDto result = autoAcceptResult.orElseThrow(OrderAcceptionException::new);
+            OrderCreationResultDto result = autoAcceptResult.orElseThrow(() -> {
+                final String message = String.format("Failed to find open %s limit orders for currency pair id: %d", orderCreateDto.getOperationType().name(), orderCreateDto.getCurrencyPair().getId());
+                log.warn(message);
+                return new OrderAcceptionException(message);
+            });
             return String.format("Accepted %s orders", result.getAutoAcceptedQuantity());
         }
     }

@@ -126,7 +126,6 @@ public class OrderDaoImplTest extends DataComparisonTest {
 
 
     @Test
-    @Ignore
     public void updateOrder_Ok() {
         String sql = "SELECT * FROM " + TABLE_EXORDERS;
 
@@ -141,7 +140,6 @@ public class OrderDaoImplTest extends DataComparisonTest {
     }
 
     @Test
-    @Ignore
     public void updateOrder_NotUpdate_The_Same_Object() {
         String sql = "SELECT * FROM " + TABLE_EXORDERS;
 
@@ -329,7 +327,6 @@ public class OrderDaoImplTest extends DataComparisonTest {
     }
 
     @Test
-    @Ignore
     public void searchOrderByAdmin_Ok() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         int currencyPair = 1;
@@ -362,7 +359,6 @@ public class OrderDaoImplTest extends DataComparisonTest {
     }
 
     @Test
-    @Ignore
     public void lockOrdersListForAcception_False() {
         boolean actual = orderDao.lockOrdersListForAcception(Collections.singletonList(8));
         assertFalse(actual);
