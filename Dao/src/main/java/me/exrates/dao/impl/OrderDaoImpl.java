@@ -1247,8 +1247,10 @@ public class OrderDaoImpl implements OrderDao {
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("order_ids", ordersList);
         try {
-            masterJdbcTemplate.queryForList(sql, namedParameters, Integer.class);
-            return true;
+            final List<Integer> records = masterJdbcTemplate.queryForList(sql, namedParameters, Integer.class);
+            Collections.sort(records);
+            Collections.sort(ordersList);
+            return ordersList.equals(records);
         } catch (EmptyResultDataAccessException e) {
             return false;
         }

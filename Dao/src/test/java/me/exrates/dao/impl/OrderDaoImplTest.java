@@ -15,7 +15,6 @@ import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderEventEnum;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.OrderType;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -336,7 +335,7 @@ public class OrderDaoImplTest extends DataComparisonTest {
         BigDecimal orderVolume = BigDecimal.ONE;
 
         int actual = orderDao.searchOrderByAdmin(currencyPair, orderType, orderDate, orderRate, orderVolume);
-        assertEquals(1, actual);
+        assertEquals(-1, actual);
     }
 
     @Test
