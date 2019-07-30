@@ -15,7 +15,6 @@ import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderEventEnum;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.OrderType;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -358,7 +357,6 @@ public class OrderDaoImplTest extends DataComparisonTest {
         assertTrue(actual);
     }
 
-    @Ignore
     @Test
     public void lockOrdersListForAcception_False() {
         boolean actual = orderDao.lockOrdersListForAcception(Collections.singletonList(8));

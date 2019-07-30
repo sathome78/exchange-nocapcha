@@ -106,7 +106,7 @@ public abstract class AbstractDatabaseContextTest {
     public static void afterClass() {
         schemas.values().forEach(config -> {
             try {
-                String dbServerUrl = config.getUrl().replace(config.getRootSchemeName() + "?",  "?");
+                String dbServerUrl = config.getUrl().replace(config.getRootSchemeName() + "?", "?");
                 Connection connection = DriverManager.getConnection(dbServerUrl, config.getUser(), config.getPassword());
                 Statement statement = connection.createStatement();
                 statement.execute(String.format("DROP DATABASE IF EXISTS %s;", config.getSchemaName()));
@@ -269,7 +269,6 @@ public abstract class AbstractDatabaseContextTest {
         populator.addScript(new ClassPathResource("db/POPULATE_USER_ROLE_REPORT_GROUP_FEATURE.sql"));
         populator.addScript(new ClassPathResource("db/POPULATE_USER_ROLE.sql"));
         populator.addScript(new ClassPathResource("db/POPULATE_OPERATION_TYPE.sql"));
-        populator.addScript(new ClassPathResource("db/ADD_COLUMN_COUNTER_ORDER_TYPE_TO_EXORDERS_TABLE.sql"));
         // temp
         populator.addScript(new ClassPathResource("db/TEMPORARY_DELETE_AND_ADD_FIELDS_TO_API_AUTH_TOKEN_TABLE.sql"));
         populator.populate(rootDataSource.getConnection());
