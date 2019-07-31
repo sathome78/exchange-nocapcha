@@ -214,6 +214,7 @@ public class OrderServiceImplTest {
     public void setUp() {
         final CurrencyPairLimitDto currencyPairLimitDto = new CurrencyPairLimitDto();
         currencyPairLimitDto.setMinAmount(BigDecimal.valueOf(0.0002));
+        currencyPairLimitDto.setMaxAmount(BigDecimal.valueOf(1000000000));
         when(currencyService.findLimitForRoleByCurrencyPairAndType(anyInt(),
                 any(OperationType.class))).thenReturn(currencyPairLimitDto);
     }
