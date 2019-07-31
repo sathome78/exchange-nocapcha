@@ -560,7 +560,6 @@ public class OrderDaoImplTest extends DataComparisonTest {
         prepareTestData(sql1, sql2);
 
 
-
         Integer userId = 16;
         CurrencyPair currencyPair = new CurrencyPair();
         currencyPair.setId(3);
