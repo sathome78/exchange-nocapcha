@@ -1,6 +1,5 @@
 package me.exrates.dao.impl;
 
-import com.google.common.collect.ImmutableList;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
@@ -56,7 +55,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -2341,7 +2339,7 @@ public class OrderDaoImpl implements OrderDao {
             orderWideListDto.setId(rs.getInt("id"));
             orderWideListDto.setUserId(rs.getInt("user_id"));
             orderWideListDto.setUserAcceptorId(acceptorId);
-            orderWideListDto.setOperationTypeEnum(operationType);
+            orderWideListDto.setOperationTypeEnum(getOperationTypeBasedOnUserId(userId, acceptorId, operationType));
             orderWideListDto.setAmountBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_base"), locale, 2));
             orderWideListDto.setAmountConvert(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_convert"), locale, 2));
             orderWideListDto.setComissionId(rs.getInt("commission_id"));
@@ -2373,19 +2371,19 @@ public class OrderDaoImpl implements OrderDao {
                 orderWideListDto.setStopRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("stop_rate"), locale, 2));
                 orderWideListDto.setLimitRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("limit_rate"), locale, 2));
             }
-            orderWideListDto.setOperationType(String.join(" ", getOrderTypeBasedOnUserId(userId, acceptorId, operationType), baseType));
+            orderWideListDto.setOperationType(String.join(" ", getOperationTypeBasedOnUserId(userId, acceptorId, operationType).name(), baseType));
             return orderWideListDto;
         };
     }
 
-    private String getOrderTypeBasedOnUserId(int userId, int acceptorId, OperationType operationType) {
+    private OperationType getOperationTypeBasedOnUserId(int userId, int acceptorId, OperationType operationType) {
         if (userId == acceptorId) {
             if (operationType == OperationType.BUY) {
-                return OperationType.SELL.name();
+                return OperationType.SELL;
             }
-            return OperationType.BUY.name();
+            return OperationType.BUY;
         }
-        return operationType.name();
+        return operationType;
     }
 
     private LocalDateTime getLocalDateTime(ResultSet rs, String columnName) {
