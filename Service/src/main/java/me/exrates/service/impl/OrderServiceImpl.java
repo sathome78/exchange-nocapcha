@@ -82,6 +82,8 @@ import me.exrates.model.enums.TransactionStatus;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.ngExceptions.MarketOrderAcceptionException;
+import me.exrates.model.ngExceptions.NgOrderValidationException;
+import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
@@ -880,30 +882,37 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderCreateDto prepareMarketOrder(InputCreateOrderDto inputOrder) {
+        final OperationType operationType = OperationType.of(inputOrder.getOrderType());
         String userEmail = userService.getUserEmailFromSecurityContext();
         Currency spendCurrency = null;
-        OperationType operationType = OperationType.valueOf(inputOrder.getOrderType());
         CurrencyPair activeCurrencyPair = currencyService.findCurrencyPairById(inputOrder.getCurrencyPairId());
         if (operationType == OperationType.SELL) {
             spendCurrency = activeCurrencyPair.getCurrency1();
         } else if (operationType == OperationType.BUY) {
             spendCurrency = activeCurrencyPair.getCurrency2();
         }
-        WalletsAndCommissionsForOrderCreationDto walletsAndCommissions = getWalletAndCommission(userEmail, spendCurrency, operationType);
         /**/
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         orderCreateDto.setOperationType(operationType);
         orderCreateDto.setCurrencyPair(activeCurrencyPair);
         orderCreateDto.setAmount(inputOrder.getAmount());
-        orderCreateDto.setUserId(walletsAndCommissions.getUserId());
         orderCreateDto.setCurrencyPair(activeCurrencyPair);
         orderCreateDto.setOrderBaseType(OrderBaseType.MARKET);
 
+        final OrderValidationDto orderValidationDto = validateMarketOrder(orderCreateDto);
+        Map<String, Object> errorMap = orderValidationDto.getErrors();
+        if (!errorMap.isEmpty()) {
+            throw new NgOrderValidationException(orderValidationDto);
+        }
+
+        WalletsAndCommissionsForOrderCreationDto walletsAndCommissions = getWalletAndCommission(userEmail, spendCurrency, operationType);
+        orderCreateDto.setUserId(walletsAndCommissions.getUserId());
         if (operationType == OperationType.SELL) {
             orderCreateDto.setWalletIdCurrencyBase(walletsAndCommissions.getSpendWalletId());
         } else if (operationType == OperationType.BUY) {
             orderCreateDto.setWalletIdCurrencyConvert(walletsAndCommissions.getSpendWalletId());
         }
+
         return orderCreateDto;
     }
 
@@ -1119,8 +1128,9 @@ public class OrderServiceImpl implements OrderService {
         acceptOrder(newOrder.getUserId(), acceptedId, locale, false, acceptEventsList, true, counterType);
         orderCreationResultDto.setOrderIdToOpen(remainderId);
         orderCreationResultDto.setOrderIdToAccept(acceptedId);
-        if (! isNewPartialOrderValid(remainingAmount, orderForPartialAccept)) {
-            cancelOrder(remainderId);
+        if (!isNewPartialOrderValid(remainingAmount, orderForPartialAccept)) {
+            ExOrder exOrder = getOrderById(remainderId);
+            cancelOrder(exOrder, Locale.ENGLISH);
         }
         logTransaction("acceptPartially", "end", orderForPartialAccept.getCurrencyPairId(), acceptedId, null);
         eventPublisher.publishEvent(partiallyAcceptedOrder(orderForPartialAccept, amountForPartialAccept));
@@ -1134,11 +1144,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private boolean isNewPartialOrderValid(BigDecimal amount, ExOrder order) {
-        CurrencyPairLimitDto currencyPairLimit = currencyService.findLimitForRoleByCurrencyPairAndType(order.getCurrencyPair().getId(),
+        CurrencyPairLimitDto currencyPairLimit = currencyService.findLimitForRoleByCurrencyPairAndType(order.getCurrencyPairId(),
                 order.getOperationType());
+        if (Objects.isNull(currencyPairLimit)) {
+            return true;
+        }
         return currencyPairLimit.getMinAmount().compareTo(amount) < 0;
     }
-
 
     private void logTransaction(String method, String part, Integer pairId, int partiallyAcceptedOrderId, List<UserOrdersDto> ordersDtos) {
         if (pairId == null) {
@@ -1607,6 +1619,10 @@ public class OrderServiceImpl implements OrderService {
 
     private boolean cancelOrder(ExOrder exOrder) {
         return cancelOrder(exOrder, null, null, false);
+    }
+
+    private boolean cancelOrder(ExOrder exOrder, Locale locale) {
+        return cancelOrder(exOrder, locale, null, false);
     }
 
     @Transactional(rollbackFor = {Exception.class})
