@@ -108,6 +108,7 @@ import me.exrates.service.util.BiTuple;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.json.JSONArray;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -208,6 +209,14 @@ public class OrderServiceImplTest {
 
     @InjectMocks
     private OrderService orderService = new OrderServiceImpl();
+
+    @Before
+    public void setUp() {
+        final CurrencyPairLimitDto currencyPairLimitDto = new CurrencyPairLimitDto();
+        currencyPairLimitDto.setMinAmount(BigDecimal.valueOf(0.0002));
+        when(currencyService.findLimitForRoleByCurrencyPairAndType(anyInt(),
+                any(OperationType.class))).thenReturn(currencyPairLimitDto);
+    }
 
     @Test
     public void getIntervals() {

@@ -1109,8 +1109,9 @@ public class OrderServiceImpl implements OrderService {
                 userById.getEmail(), amountForPartialAccept,
                 orderForPartialAccept.getExRate(), orderForPartialAccept.getId(),
                 orderForPartialAccept.getOrderBaseType());
+        BigDecimal remainingAmount = orderForPartialAccept.getAmountBase().subtract(amountForPartialAccept);
         OrderCreateDto remainder = prepareNewOrder(newOrder.getCurrencyPair(), orderForPartialAccept.getOperationType(),
-                userById.getEmail(), orderForPartialAccept.getAmountBase().subtract(amountForPartialAccept),
+                userById.getEmail(), remainingAmount,
                 orderForPartialAccept.getExRate(), orderForPartialAccept.getId(), orderForPartialAccept.getOrderBaseType());
         int acceptedId = createOrder(accepted, CREATE, acceptEventsList, true);
         logTransaction("acceptPartially", "middle", orderForPartialAccept.getCurrencyPairId(), accepted.getOrderId(), null);
@@ -1118,6 +1119,9 @@ public class OrderServiceImpl implements OrderService {
         acceptOrder(newOrder.getUserId(), acceptedId, locale, false, acceptEventsList, true, counterType);
         orderCreationResultDto.setOrderIdToOpen(remainderId);
         orderCreationResultDto.setOrderIdToAccept(acceptedId);
+        if (! isNewPartialOrderValid(remainingAmount, orderForPartialAccept)) {
+            cancelOrder(remainderId);
+        }
         logTransaction("acceptPartially", "end", orderForPartialAccept.getCurrencyPairId(), acceptedId, null);
         eventPublisher.publishEvent(partiallyAcceptedOrder(orderForPartialAccept, amountForPartialAccept));
 
@@ -1127,6 +1131,12 @@ public class OrderServiceImpl implements OrderService {
         new Object[]{orderForPartialAccept.getId(), amountForPartialAccept.toString(),
             orderForPartialAccept.getAmountBase().toString(), newOrder.getCurrencyPair().getCurrency1().getName()});*/
         return amountForPartialAccept;
+    }
+
+    private boolean isNewPartialOrderValid(BigDecimal amount, ExOrder order) {
+        CurrencyPairLimitDto currencyPairLimit = currencyService.findLimitForRoleByCurrencyPairAndType(order.getCurrencyPair().getId(),
+                order.getOperationType());
+        return currencyPairLimit.getMinAmount().compareTo(amount) < 0;
     }
 
 
