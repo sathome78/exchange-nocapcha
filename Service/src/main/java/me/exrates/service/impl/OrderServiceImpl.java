@@ -404,9 +404,9 @@ public class OrderServiceImpl implements OrderService {
     private boolean setTopMarketToCurrencyPair(ExOrderStatisticsShortByPairsDto e) {
         CurrencyPair currencyPair = currencyService.getAllCurrencyPairCached().get(e.getCurrencyPairId());
         if (currencyPair.getTopMarketVolume() != null) {
-            return currencyPair.getTopMarketVolume().compareTo(new BigDecimal(e.getVolume())) < 0;
+            return new BigDecimal(e.getVolume()).compareTo(currencyPair.getTopMarketVolume()) > 0;
         } else {
-            return new BigDecimal(getDefauktVolumeMarket(currencyPair.getMarket())).compareTo(new BigDecimal(e.getVolume())) < 0;
+            return (new BigDecimal(e.getVolume())).compareTo(new BigDecimal(getDefauktVolumeMarket(currencyPair.getMarket()))) > 0;
         }
     }
 
