@@ -83,8 +83,6 @@ import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.enums.WsSourceTypeEnum;
-import me.exrates.model.enums.invoice.InvoiceStatus;
-import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.form.AuthorityOptionsForm;
 import me.exrates.model.form.UserOperationAuthorityOptionsForm;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -623,7 +621,10 @@ public class AdminController {
         model.addObject("user", user);
         model.addObject("userGoogle2fa", g2faService.isGoogleAuthenticatorEnable(user.getId()));
         model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
-        model.addObject("currencies", currencyService.findAllCurrenciesWithHidden());
+        model.addObject("currencies", currencyService.findAllCurrenciesWithHidden()
+                .stream()
+                .sorted(Comparator.comparing(Currency::getName))
+                .collect(Collectors.toList()));
         model.addObject("currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL));
         model.setViewName("admin/editUser");
         model.addObject("userFiles", userService.findUserDoc(user.getId()));
