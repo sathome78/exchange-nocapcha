@@ -15,6 +15,9 @@
         </RollingFile>
         <RollingFile name="Logs" fileName="${sys:catalina.home}/logs/general/log.log"
             filePattern="${sys:catalina.home}/logs/general/log_%d_%i.log" append="true">
+            <Filters>
+                <BurstFilter level="INFO" rate="10" maxBurst="10"/>
+            </Filters>
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
