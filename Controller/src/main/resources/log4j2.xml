@@ -755,19 +755,19 @@
         </RollingFile>
     </Appenders>
     <Loggers>
-        <Logger name="jdbc_logger" level="INFO" additivity="false">
+        <Logger name="jdbc_logger" level="ERROR" additivity="false">
             <appender-ref ref="jdbc_log" />
         </Logger>
-        <Logger name="merchant" level="DEBUG" additivity="false">
+        <Logger name="merchant" level="ERROR" additivity="false">
             <AppenderRef ref="Merchants"/>
         </Logger>
         <logger name="org.quartz" level="ERROR" additivity="false">
             <AppenderRef ref="Logs"/>
         </logger>
-        <logger name="bitcoin_core" level="INFO" additivity="false">
+        <logger name="bitcoin_core" level="ERROR" additivity="false">
             <AppenderRef ref="bitcoin_core_log"/>
         </logger>
-        <logger name="com.neemre.btcdcli4j" level="INFO" additivity="false">
+        <logger name="com.neemre.btcdcli4j" level="ERROR" additivity="false">
             <AppenderRef ref="bitcoin_core_log"/>
         </logger>
         <logger name="org.apache.http" level="ERROR" additivity="false">
@@ -776,10 +776,10 @@
         <Logger name="org.springframework" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
-        <Logger name="me.exrates.controller.OnlineRestController" level="INFO" additivity="false">
+        <Logger name="me.exrates.controller.OnlineRestController" level="ERROR" additivity="false">
             <AppenderRef ref="OnlineServices"/>
         </Logger>
-        <Logger name="me.exrates.controller.OrderControllerRest" level="DEBUG" additivity="false">
+        <Logger name="me.exrates.controller.OrderControllerRest" level="ERROR" additivity="false">
             <AppenderRef ref="RestServices"/>
         </Logger>
         <Logger name="me.exrates.controller.PublicController" level="ERROR" additivity="false">
@@ -788,7 +788,7 @@
         <Logger name="me.exrates.controller.filter.XssRequestFilter" level="ERROR" additivity="false">
             <AppenderRef ref="SessionLog"/>
         </Logger>
-        <Logger name="me.exrates.controller.listener.StoreSessionListenerImpl" level="DEBUG" additivity="false">
+        <Logger name="me.exrates.controller.listener.StoreSessionListenerImpl" level="ERROR" additivity="false">
             <AppenderRef ref="SessionLog"/>
         </Logger>
 
@@ -805,7 +805,7 @@
         <!--... WALLET-->
 
         <!--PROXY-->
-        <Logger name="me.exrates.service.impl.proxy" level="DEBUG" additivity="false">
+        <Logger name="me.exrates.service.impl.proxy" level="ERROR" additivity="false">
             <AppenderRef ref="proxy_log"/>
         </Logger>
 
@@ -815,17 +815,17 @@
         </Logger>
 
         <!--job-->
-        <Logger name="job" level="DEBUG" additivity="false">
+        <Logger name="job" level="ERROR" additivity="false">
             <AppenderRef ref="job_log"/>
         </Logger>
 
-        <Logger name="withdraw" level="DEBUG" additivity="false">
+        <Logger name="withdraw" level="ERROR" additivity="false">
             <AppenderRef ref="withdraw_log"/>
         </Logger>
-        <Logger name="refill" level="DEBUG" additivity="false">
+        <Logger name="refill" level="ERROR" additivity="false">
             <AppenderRef ref="refill_log"/>
         </Logger>
-        <Logger name="transfer" level="DEBUG" additivity="false">
+        <Logger name="transfer" level="ERROR" additivity="false">
             <AppenderRef ref="transfer_log"/>
         </Logger>
         <logger name="exceptions_log" level="ALL" additivity="false">
@@ -919,7 +919,7 @@
         <logger name="nexty_log" level="ALL" additivity="false">
             <AppenderRef ref="nexty_log"/>
         </logger>
-        <logger name="eth_tokens_log" level="DEBUG" additivity="false">
+        <logger name="eth_tokens_log" level="ERROR" additivity="false">
             <AppenderRef ref="eth_tokens_log"/>
         </logger>
         <logger name="monero_log" level="ALL" additivity="false">
