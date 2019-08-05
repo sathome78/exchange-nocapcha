@@ -1038,10 +1038,10 @@
 <!--        <logger name="inout" level="ERROR" additivity="false">-->
 <!--            <AppenderRef ref="inout"/>-->
 <!--        </logger>-->
-        <Logger name="org.springframework" level="ERROR" additivity="false">
-            <AppenderRef ref="Console"/>
-            <AppenderRef ref="Logs"/>
-        </Logger>
+<!--        <Logger name="org.springframework" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="Console"/>-->
+<!--            <AppenderRef ref="Logs"/>-->
+<!--        </Logger>-->
 <!--        <Logger name="me.exrates" level="ERROR" additivity="false">-->
 <!--            <AppenderRef ref="Console"/>-->
 <!--            <AppenderRef ref="Logs"/>-->
