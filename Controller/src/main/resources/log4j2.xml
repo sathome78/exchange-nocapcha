@@ -755,296 +755,297 @@
         </RollingFile>
     </Appenders>
     <Loggers>
-        <Logger name="jdbc_logger" level="ERROR" additivity="false">
-            <appender-ref ref="jdbc_log" />
-        </Logger>
-        <Logger name="merchant" level="ERROR" additivity="false">
-            <AppenderRef ref="Merchants"/>
-        </Logger>
-        <logger name="org.quartz" level="ERROR" additivity="false">
-            <AppenderRef ref="Logs"/>
-        </logger>
-        <logger name="bitcoin_core" level="ERROR" additivity="false">
-            <AppenderRef ref="bitcoin_core_log"/>
-        </logger>
-        <logger name="com.neemre.btcdcli4j" level="ERROR" additivity="false">
-            <AppenderRef ref="bitcoin_core_log"/>
-        </logger>
-        <logger name="org.apache.http" level="ERROR" additivity="false">
-            <AppenderRef ref="bitcoin_core_log"/>
-        </logger>
-        <Logger name="org.springframework" level="ERROR" additivity="false">
-            <AppenderRef ref="Console"/>
-        </Logger>
-        <Logger name="me.exrates.controller.OnlineRestController" level="ERROR" additivity="false">
-            <AppenderRef ref="OnlineServices"/>
-        </Logger>
-        <Logger name="me.exrates.controller.OrderControllerRest" level="ERROR" additivity="false">
-            <AppenderRef ref="RestServices"/>
-        </Logger>
-        <Logger name="me.exrates.controller.PublicController" level="ERROR" additivity="false">
-            <AppenderRef ref="PublicServices"/>
-        </Logger>
-        <Logger name="me.exrates.controller.filter.XssRequestFilter" level="ERROR" additivity="false">
-            <AppenderRef ref="SessionLog"/>
-        </Logger>
-        <Logger name="me.exrates.controller.listener.StoreSessionListenerImpl" level="ERROR" additivity="false">
-            <AppenderRef ref="SessionLog"/>
-        </Logger>
+<!--        <Logger name="jdbc_logger" level="ERROR" additivity="false">-->
+<!--            <appender-ref ref="jdbc_log" />-->
+<!--        </Logger>-->
+<!--        <Logger name="merchant" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="Merchants"/>-->
+<!--        </Logger>-->
+<!--        <logger name="org.quartz" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="Logs"/>-->
+<!--        </logger>-->
+<!--        <logger name="bitcoin_core" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="bitcoin_core_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="com.neemre.btcdcli4j" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="bitcoin_core_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="org.apache.http" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="bitcoin_core_log"/>-->
+<!--        </logger>-->
+<!--        <Logger name="me.exrates.controller.OnlineRestController" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="OnlineServices"/>-->
+<!--        </Logger>-->
+<!--        <Logger name="me.exrates.controller.OrderControllerRest" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="RestServices"/>-->
+<!--        </Logger>-->
+<!--        <Logger name="me.exrates.controller.PublicController" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="PublicServices"/>-->
+<!--        </Logger>-->
+<!--        <Logger name="me.exrates.controller.filter.XssRequestFilter" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="SessionLog"/>-->
+<!--        </Logger>-->
+<!--        <Logger name="me.exrates.controller.listener.StoreSessionListenerImpl" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="SessionLog"/>-->
+<!--        </Logger>-->
 
         <!--WERRORET ... -->
-        <Logger name="me.exrates.controller.WalletController" level="ERROR" additivity="false">
-            <AppenderRef ref="wallet_log"/>
-        </Logger>
-        <Logger name="me.exrates.service.impl.WalletServiceImpl" level="ERROR" additivity="false">
-            <AppenderRef ref="wallet_log"/>
-        </Logger>
-        <Logger name="me.exrates.dao.impl.WalletDaoImpl" level="ERROR" additivity="false">
-            <AppenderRef ref="wallet_log"/>
-        </Logger>
+<!--        <Logger name="me.exrates.controller.WalletController" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="wallet_log"/>-->
+<!--        </Logger>-->
+<!--        <Logger name="me.exrates.service.impl.WalletServiceImpl" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="wallet_log"/>-->
+<!--        </Logger>-->
+<!--        <Logger name="me.exrates.dao.impl.WalletDaoImpl" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="wallet_log"/>-->
+<!--        </Logger>-->
         <!--... WERRORET-->
 
         <!--PROXY-->
-        <Logger name="me.exrates.service.impl.proxy" level="ERROR" additivity="false">
-            <AppenderRef ref="proxy_log"/>
-        </Logger>
+<!--        <Logger name="me.exrates.service.impl.proxy" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="proxy_log"/>-->
+<!--        </Logger>-->
 
         <!--profiling-->
-        <Logger name="profile" level="ERROR" additivity="false">F
-            <AppenderRef ref="profile_log"/>
-        </Logger>
+<!--        <Logger name="profile" level="ERROR" additivity="false">F-->
+<!--            <AppenderRef ref="profile_log"/>-->
+<!--        </Logger>-->
 
         <!--job-->
-        <Logger name="job" level="ERROR" additivity="false">
-            <AppenderRef ref="job_log"/>
-        </Logger>
+<!--        <Logger name="job" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="job_log"/>-->
+<!--        </Logger>-->
 
-        <Logger name="withdraw" level="ERROR" additivity="false">
-            <AppenderRef ref="withdraw_log"/>
-        </Logger>
-        <Logger name="refill" level="ERROR" additivity="false">
-            <AppenderRef ref="refill_log"/>
-        </Logger>
-        <Logger name="transfer" level="ERROR" additivity="false">
-            <AppenderRef ref="transfer_log"/>
-        </Logger>
-        <logger name="exceptions_log" level="ERROR" additivity="false">
-            <AppenderRef ref="exceptions_log"/>
-        </logger>
-        <logger name="exceptions_ext_log" level="ERROR" additivity="false">
-            <AppenderRef ref="exceptions_ext_log"/>
-        </logger>
+<!--        <Logger name="withdraw" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="withdraw_log"/>-->
+<!--        </Logger>-->
+<!--        <Logger name="refill" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="refill_log"/>-->
+<!--        </Logger>-->
+<!--        <Logger name="transfer" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="transfer_log"/>-->
+<!--        </Logger>-->
+<!--        <logger name="exceptions_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="exceptions_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="exceptions_ext_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="exceptions_ext_log"/>-->
+<!--        </logger>-->
 
-        <logger name="withdraw_log" level="ERROR" additivity="false">
-            <AppenderRef ref="withdraw_asp_log"/>
-        </logger>
+<!--        <logger name="withdraw_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="withdraw_asp_log"/>-->
+<!--        </logger>-->
 
-        <logger name="withdraw_ext_log" level="ERROR" additivity="false">
-            <AppenderRef ref="withdraw_ext_asp_log"/>
-        </logger>
+<!--        <logger name="withdraw_ext_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="withdraw_ext_asp_log"/>-->
+<!--        </logger>-->
 
-        <logger name="refill_asp_log" level="ERROR" additivity="false">
-            <AppenderRef ref="refill_asp_log"/>
-        </logger>
+<!--        <logger name="refill_asp_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="refill_asp_log"/>-->
+<!--        </logger>-->
 
-        <logger name="refill_asp_ext_log" level="ERROR" additivity="false">
-            <AppenderRef ref="refill_ext_asp_log"/>
-        </logger>
+<!--        <logger name="refill_asp_ext_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="refill_ext_asp_log"/>-->
+<!--        </logger>-->
 
-        <logger name="transfer_asp_log" level="ERROR" additivity="false">
-            <AppenderRef ref="transfer_asp_log"/>
-        </logger>
+<!--        <logger name="transfer_asp_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="transfer_asp_log"/>-->
+<!--        </logger>-->
 
-        <logger name="transfer_asp_ext_log" level="ERROR" additivity="false">
-            <AppenderRef ref="transfer_ext_asp_log"/>
-        </logger>
+<!--        <logger name="transfer_asp_ext_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="transfer_ext_asp_log"/>-->
+<!--        </logger>-->
 
-        <logger name="survey_result" level="ERROR" additivity="false">
-            <AppenderRef ref="survey_result_log"/>
-        </logger>
-        <logger name="survey" level="ERROR" additivity="false">
-            <AppenderRef ref="survey_log"/>
-        </logger>
-        <logger name="bot_trader" level="ERROR" additivity="false">
-            <AppenderRef ref="bot_trader_log"/>
-        </logger>
-        <logger name="admin_log" level="ERROR" additivity="false">
-            <AppenderRef ref="admin_log"/>
-        </logger>
-        <logger name="stellar_log" level="ERROR" additivity="false">
-            <AppenderRef ref="stellar_log"/>
-        </logger>
-        <logger name="usdx_log" level="ERROR" additivity="false">
-            <AppenderRef ref="usdx_log"/>
-        </logger>
-        <logger name="ripple_log" level="ERROR" additivity="false">
-            <AppenderRef ref="ripple_log"/>
-        </logger>
-        <logger name="casinocoin_log" level="ERROR" additivity="false">
-            <AppenderRef ref="casinocoin_log"/>
-        </logger>
-        <logger name="nem_log" level="ERROR" additivity="false">
-            <AppenderRef ref="nem_log"/>
-        </logger>
-        <logger name="neo_log" level="ERROR" additivity="false">
-            <AppenderRef ref="neo_log"/>
-        </logger>
-        <logger name="qtum_log" level="ERROR" additivity="false">
-            <AppenderRef ref="qtum_log"/>
-        </logger>
-        <logger name="ethereum_log" level="ERROR" additivity="false">
-            <AppenderRef ref="ethereum_log"/>
-        </logger>
-        <logger name="ethereum_classic_log" level="ERROR" additivity="false">
-            <AppenderRef ref="ethereum_classic_log"/>
-        </logger>
-        <logger name="rabbit_refill" level="ERROR" additivity="false">
-            <AppenderRef ref="rabbit_refill"/>
-        </logger>
-        <logger name="etherzero_log" level="ERROR" additivity="false">
-            <AppenderRef ref="etherzero_log"/>
-        </logger>
-        <logger name="callisto_log" level="ERROR" additivity="false">
-            <AppenderRef ref="callisto_log"/>
-        </logger>
-        <logger name="bitcoiin2g_log" level="ERROR" additivity="false">
-            <AppenderRef ref="bitcoiin2g_log"/>
-        </logger>
-        <logger name="goldiam_log" level="ERROR" additivity="false">
-            <AppenderRef ref="goldiam_log"/>
-        </logger>
-        <logger name="contractnet_log" level="ERROR" additivity="false">
-            <AppenderRef ref="contractnet_log"/>
-        </logger>
-        <logger name="nexty_log" level="ERROR" additivity="false">
-            <AppenderRef ref="nexty_log"/>
-        </logger>
-        <logger name="eth_tokens_log" level="ERROR" additivity="false">
-            <AppenderRef ref="eth_tokens_log"/>
-        </logger>
-        <logger name="monero_log" level="ERROR" additivity="false">
-            <AppenderRef ref="monero_log"/>
-        </logger>
-        <logger name="ditcoin_log" level="ERROR" additivity="false">
-            <AppenderRef ref="ditcoin_log"/>
-        </logger>
-        <logger name="sumokoin_log" level="ERROR" additivity="false">
-            <AppenderRef ref="sumokoin_log"/>
-        </logger>
-        <logger name="hcxp_log" level="ERROR" additivity="false">
-            <AppenderRef ref="hcxp_log"/>
-        </logger>
-        <logger name="edc_log" level="ERROR" additivity="false">
-            <AppenderRef ref="edc_log"/>
-        </logger>
-        <logger name="iota_log" level="ERROR" additivity="false">
-            <AppenderRef ref="iota_log"/>
-        </logger>
-        <logger name="ws_stomp_log" level="ERROR" additivity="false">
-            <AppenderRef ref="ws_stomp_log"/>
-        </logger>
-        <logger name="org.springframework.web.socket.messaging.StompSubProtocolHandler" additivity="false" level="ERROR">
-            <AppenderRef ref="ws_stomp_log"/>
-        </logger>
-        <logger name="tracker" level="ERROR" additivity="false">
-            <AppenderRef ref="tracker_log"/>
-        </logger>
-        <logger name="org.telegram.telegrambots.exceptions.TelegramApiRequestException" additivity="false" level="ERROR">
-            <AppenderRef ref="message_notify"/>
-        </logger>
-        <logger name="message_notify" additivity="false" level="ERROR">
-            <AppenderRef ref="message_notify"/>
-        </logger>
-        <logger name="waves_log" level="ERROR" additivity="false">
-            <AppenderRef ref="waves_log"/>
-        </logger>
-        <logger name="lisk_log" level="ERROR" additivity="false">
-            <AppenderRef ref="lisk_log"/>
-        </logger>
-        <logger name="config" level="ERROR" additivity="false">
-            <AppenderRef ref="config"/>
-        </logger>
-        <logger name="eos_log" level="ERROR" additivity="false">
-            <AppenderRef ref="eos_log"/>
-        </logger>
-        <logger name="zil_log" level="ERROR" additivity="false">
-            <AppenderRef ref="zil_log"/>
-        </logger>
-        <logger name="ip_log" level="ERROR" additivity="false">
-            <AppenderRef ref="ip_log"/>
-        </logger>
-        <logger name="test" level="ERROR" additivity="false">
-            <AppenderRef ref="test_log"/>
-        </logger>
-        <logger name="cache" level="ERROR" additivity="false">
-            <AppenderRef ref="cache_log"/>
-        </logger>
-        <logger name="decred" level="ERROR" additivity="false">
-            <AppenderRef ref="decred"/>
-        </logger>
-        <logger name="achain" level="ERROR" additivity="false">
-            <AppenderRef ref="achain"/>
-        </logger>
-        <logger name="tron" level="ERROR" additivity="false">
-            <AppenderRef ref="tron"/>
-        </logger>
-        <logger name="open_api" level="ERROR" additivity="false">
-            <AppenderRef ref="open_api_log"/>
-        </logger>
-        <logger name="etherinc_log" level="ERROR" additivity="false">
-            <AppenderRef ref="etherinc_log"/>
-        </logger>
-        <logger name="org.web3j.protocol.core.filters.Filter" level="ERROR" additivity="false">
-        </logger>
-        <logger name="adk_log" level="ERROR" additivity="false">
-            <AppenderRef ref="adk"/>
-        </logger>
-        <logger name="control_aspect_log" level="ERROR" additivity="false">
-            <AppenderRef ref="control_aspect"/>
-        </logger>
-        <logger name="apollo" level="ERROR" additivity="false">
-            <AppenderRef ref="apollo_log"/>
-        </logger>
-        <logger name="aunit" level="ERROR" additivity="false">
-            <AppenderRef ref="aunit"/>
-        </logger>
-        <logger name="crea" level="ERROR" additivity="false">
-            <AppenderRef ref="crea"/>
-        </logger>
-        <logger name="ppy" level="ERROR" additivity="false">
-            <AppenderRef ref="ppy"/>
-        </logger>
-        <logger name="email_log" level="ERROR" additivity="false">
-            <AppenderRef ref="email_log"/>
-        </logger>
-        <logger name="Qiwi" level="ERROR" additivity="false">
-            <AppenderRef ref="qiwi_log"/>
-        </logger>
-        <logger name="omni_log" level="ERROR" additivity="false">
-            <AppenderRef ref="omni_log"/>
-        </logger>
-        <logger name="aisi_log" level="ERROR" additivity="false">
-            <AppenderRef ref="aisi_log"/>
-        </logger>
-        <logger name="algorithm_log" level="ERROR" additivity="false">
-            <AppenderRef ref="algorithm_log"/>
-        </logger>
-        <logger name="nixmoney_log" level="ERROR" additivity="false">
-            <AppenderRef ref="nixmoney_log"/>
-        </logger>
-        <logger name="ordersTxLogger" level="ERROR" additivity="false">
-            <AppenderRef ref="ordersTxLogger"/>
-        </logger>
-        <logger name="alterdice_api_logger" level="ERROR" additivity="false">
-            <AppenderRef ref="alterdice_logger"/>
-        </logger>
-        <logger name="inout" level="ERROR" additivity="false">
-            <AppenderRef ref="inout"/>
-        </logger>
-        <logger name="me.exrates" level="ERROR" additivity="false">
+<!--        <logger name="survey_result" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="survey_result_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="survey" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="survey_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="bot_trader" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="bot_trader_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="admin_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="admin_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="stellar_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="stellar_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="usdx_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="usdx_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="ripple_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="ripple_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="casinocoin_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="casinocoin_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="nem_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="nem_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="neo_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="neo_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="qtum_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="qtum_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="ethereum_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="ethereum_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="ethereum_classic_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="ethereum_classic_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="rabbit_refill" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="rabbit_refill"/>-->
+<!--        </logger>-->
+<!--        <logger name="etherzero_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="etherzero_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="callisto_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="callisto_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="bitcoiin2g_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="bitcoiin2g_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="goldiam_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="goldiam_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="contractnet_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="contractnet_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="nexty_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="nexty_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="eth_tokens_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="eth_tokens_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="monero_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="monero_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="ditcoin_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="ditcoin_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="sumokoin_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="sumokoin_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="hcxp_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="hcxp_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="edc_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="edc_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="iota_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="iota_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="ws_stomp_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="ws_stomp_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="org.springframework.web.socket.messaging.StompSubProtocolHandler" additivity="false" level="ERROR">-->
+<!--            <AppenderRef ref="ws_stomp_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="tracker" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="tracker_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="org.telegram.telegrambots.exceptions.TelegramApiRequestException" additivity="false" level="ERROR">-->
+<!--            <AppenderRef ref="message_notify"/>-->
+<!--        </logger>-->
+<!--        <logger name="message_notify" additivity="false" level="ERROR">-->
+<!--            <AppenderRef ref="message_notify"/>-->
+<!--        </logger>-->
+<!--        <logger name="waves_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="waves_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="lisk_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="lisk_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="config" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="config"/>-->
+<!--        </logger>-->
+<!--        <logger name="eos_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="eos_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="zil_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="zil_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="ip_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="ip_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="test" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="test_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="cache" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="cache_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="decred" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="decred"/>-->
+<!--        </logger>-->
+<!--        <logger name="achain" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="achain"/>-->
+<!--        </logger>-->
+<!--        <logger name="tron" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="tron"/>-->
+<!--        </logger>-->
+<!--        <logger name="open_api" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="open_api_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="etherinc_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="etherinc_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="org.web3j.protocol.core.filters.Filter" level="ERROR" additivity="false">-->
+<!--        </logger>-->
+<!--        <logger name="adk_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="adk"/>-->
+<!--        </logger>-->
+<!--        <logger name="control_aspect_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="control_aspect"/>-->
+<!--        </logger>-->
+<!--        <logger name="apollo" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="apollo_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="aunit" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="aunit"/>-->
+<!--        </logger>-->
+<!--        <logger name="crea" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="crea"/>-->
+<!--        </logger>-->
+<!--        <logger name="ppy" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="ppy"/>-->
+<!--        </logger>-->
+<!--        <logger name="email_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="email_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="Qiwi" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="qiwi_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="omni_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="omni_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="aisi_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="aisi_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="algorithm_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="algorithm_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="nixmoney_log" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="nixmoney_log"/>-->
+<!--        </logger>-->
+<!--        <logger name="ordersTxLogger" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="ordersTxLogger"/>-->
+<!--        </logger>-->
+<!--        <logger name="alterdice_api_logger" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="alterdice_logger"/>-->
+<!--        </logger>-->
+<!--        <logger name="inout" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="inout"/>-->
+<!--        </logger>-->
+        <Logger name="org.springframework" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
-        </logger>
+        </Logger>
+        <Logger name="me.exrates" level="ERROR" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="Logs"/>
+        </Logger>
         <Root level="ERROR">
             <AppenderRef ref="Console"/>
         </Root>
