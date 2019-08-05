@@ -1042,10 +1042,10 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
         </Logger>
-        <Logger name="me.exrates" level="ERROR" additivity="false">
-            <AppenderRef ref="Console"/>
-            <AppenderRef ref="Logs"/>
-        </Logger>
+<!--        <Logger name="me.exrates" level="ERROR" additivity="false">-->
+<!--            <AppenderRef ref="Console"/>-->
+<!--            <AppenderRef ref="Logs"/>-->
+<!--        </Logger>-->
         <Root level="ERROR">
             <AppenderRef ref="Console"/>
         </Root>
