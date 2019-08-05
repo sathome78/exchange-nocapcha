@@ -773,7 +773,10 @@
         <logger name="org.apache.http" level="ERROR" additivity="false">
             <AppenderRef ref="bitcoin_core_log"/>
         </logger>
-        <logger name="org.springframework" level="ERROR" />
+        <Logger name="org.springframework" level="ERROR" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="Logs"/>
+        </Logger>
 <!--        <logger name="org.springframework.security" level="ERROR" additivity="false">-->
 <!--            <AppenderRef ref="Logs"/>-->
 <!--        </logger>-->
