@@ -775,17 +775,7 @@
         </logger>
         <Logger name="org.springframework" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>
-            <AppenderRef ref="Logs"/>
         </Logger>
-<!--        <logger name="org.springframework.security" level="ERROR" additivity="false">-->
-<!--            <AppenderRef ref="Logs"/>-->
-<!--        </logger>-->
-<!--        <logger name="org.springframework.jdbc.core.JdbcTemplate" level="ERROR" additivity="false">-->
-<!--            <appender-ref ref="Console"/>-->
-<!--        </logger>-->
-<!--        <logger name="org.springframework.jdbc.core.StatementCreatorUtils" level="ERROR" additivity="false">-->
-<!--            <appender-ref ref="Console"/>-->
-<!--        </logger>-->
         <Logger name="me.exrates.controller.OnlineRestController" level="INFO" additivity="false">
             <AppenderRef ref="OnlineServices"/>
         </Logger>
@@ -800,9 +790,6 @@
         </Logger>
         <Logger name="me.exrates.controller.listener.StoreSessionListenerImpl" level="DEBUG" additivity="false">
             <AppenderRef ref="SessionLog"/>
-        </Logger>
-        <Logger name="mobileAPI" level="DEBUG" additivity="false">
-            <AppenderRef ref="MobileAPILog"/>
         </Logger>
 
         <!--WALLET ... -->
