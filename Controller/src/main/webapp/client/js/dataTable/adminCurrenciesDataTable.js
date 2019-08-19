@@ -88,6 +88,7 @@ $(document).ready(function () {
         var currentMaxRate = rowData.maxRate;
         var currentMinAmount = rowData.minAmount;
         var currentMaxAmount = rowData.maxAmount;
+        var currentMinTotal = rowData.minTotal;
         var orderType = $('#orderType').val();
         var userRole = $('#roleName-pair').val();
         $($editCurrencyPairLimitForm).find('input[name="currencyPairId"]').val(currencyId);
@@ -98,6 +99,7 @@ $(document).ready(function () {
         $($editCurrencyPairLimitForm).find('input[name="maxRate"]').val(currentMaxRate);
         $($editCurrencyPairLimitForm).find('input[name="minAmount"]').val(currentMinAmount);
         $($editCurrencyPairLimitForm).find('input[name="maxAmount"]').val(currentMaxAmount);
+        $($editCurrencyPairLimitForm).find('input[name="minTotal"]').val(currentMinTotal);
         $('#editPairLimitModal').modal();
     });
 
@@ -286,6 +288,15 @@ function updateCurrencyPairLimitsDataTable() {
                 },
                 {
                     "data": "maxAmount",
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbro(data).format('0.[0000000000]');
+                        }
+                        return data;
+                    }
+                },
+                {
+                    "data": "minTotal",
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return numbro(data).format('0.[0000000000]');
