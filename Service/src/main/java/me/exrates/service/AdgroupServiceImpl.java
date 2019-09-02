@@ -103,7 +103,7 @@ public class AdgroupServiceImpl implements AdgroupService {
                 .amount(request.getAmount())
                 .currency(request.getCurrencyName())
                 .platform("YANDEX")
-                .tel(Integer.valueOf(wallet))
+                .tel(Long.valueOf(wallet))
                 .paymentMethod(paymentMethod)
                 .build();
 
