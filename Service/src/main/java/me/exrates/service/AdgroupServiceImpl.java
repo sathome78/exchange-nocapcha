@@ -202,8 +202,8 @@ public class AdgroupServiceImpl implements AdgroupService {
         AdGroupFetchTxDto requestBody = AdGroupFetchTxDto.builder()
                 .start(0)
                 .limit(pendingTx.size())
-                .txStatus(new String[]{"PENDING", "APPROVED", "REJECTED", "CREATED"})
-                .refId(txStrings.toArray(new String[0]))
+                .txStatus(new String[]{"PENDING", "APPROVED", "REJECTED", "CREATED", "INVOICE"})
+                .orderId(txStrings.toArray(new String[0]))
                 .build();
 
         AdGroupCommonRequestDto requestDto = new AdGroupCommonRequestDto<>(header, requestBody);
@@ -227,15 +227,16 @@ public class AdgroupServiceImpl implements AdgroupService {
                                 try {
                                     processPayment(params);
                                 } catch (RefillRequestAppropriateNotFoundException e) {
-                                    e.printStackTrace();
+                                    log.error("Error while processing payment {}, e {}", params, e);
                                 }
                                 break;
+                            case INVOICE:
                             case PENDING:
+                            case CREATED:
                                 break;
                             case REJECTED:
                                 refillRequestDao.setRemarkById(transaction.getId(), "REJECTED");
                                 break;
-                            case CREATED:
                         }
                     });
         }
