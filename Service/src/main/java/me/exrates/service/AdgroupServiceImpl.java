@@ -123,6 +123,7 @@ public class AdgroupServiceImpl implements AdgroupService {
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+        log.info("Staring process payment params {}", params);
         Currency currency = currencyService.findByName(params.get("currency"));
         Merchant merchant = merchantService.findById(Integer.parseInt(params.get("merchantId")));
         int userId = Integer.parseInt(params.get("userId"));
@@ -138,6 +139,7 @@ public class AdgroupServiceImpl implements AdgroupService {
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
         Integer requestId = refillService.createAndAutoAcceptRefillRequest(requestAcceptDto, userId);
+        log.info("requestId {}", requestId);
         params.put("request_id", requestId.toString());
         sendNotification(userId, paymentAmount, currency.getName());
 
@@ -181,6 +183,7 @@ public class AdgroupServiceImpl implements AdgroupService {
     }
 
     public void regularlyCheckStatusTransactions() {
+        log.info("*** Ad_Group starting check tx ***");
         Merchant merchantWallet = merchantService.findByName("Adgroup_Wallet");
         Merchant merchantPaymentCard = merchantService.findByName("Adgroup_PaymentCard");
         List<RefillRequestFlatDto> pendingTx = refillRequestDao.getByMerchantIdAndRemark(merchantWallet.getId(), "PENDING");
@@ -188,6 +191,7 @@ public class AdgroupServiceImpl implements AdgroupService {
         pendingTx.addAll(pendingTxPaymentCard);
 
         if (pendingTx.isEmpty()) {
+            log.info("*** Ad_Group stopped check tx, empty list ***");
             return;
         }
         log.info("Staring check transactions {}", pendingTx);
