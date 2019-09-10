@@ -153,6 +153,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
+import javax.swing.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
 import java.io.ByteArrayOutputStream;
@@ -188,6 +189,7 @@ import java.util.stream.Stream;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
+import static me.exrates.model.dto.dataTable.DataTableParams.OrderDirection.DESC;
 import static me.exrates.model.enums.OrderActionEnum.ACCEPT;
 import static me.exrates.model.enums.OrderActionEnum.ACCEPTED;
 import static me.exrates.model.enums.OrderActionEnum.CANCEL;
@@ -2498,6 +2500,30 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public void logCallBackData(CallBackLogDto callBackLogDto) {
         callBackDao.logCallBackData(callBackLogDto);
+    }
+
+    @Override
+    public List<OrderWideListDto> getMyOpenOrdersWithState(String pairName, String userEmail) {
+        int userId = userService.getIdByEmail(userEmail);
+        return getMyOpenOrdersWithState(pairName, userId);
+    }
+
+    @Override
+    public List<OrderWideListDto> getMyOpenOrdersWithState(String pairName, int userId) {
+        CurrencyPair currencyPair = currencyService.getCurrencyPairByName(pairName);
+        return orderDao.getMyOrdersWithState(
+                userId,
+                currencyPair,
+                StringUtils.EMPTY,
+                OrderStatus.OPENED,
+                StringUtils.EMPTY,
+                0,
+                0,
+                false,
+                DESC.name(),
+                null,
+                null,
+                Locale.ENGLISH);
     }
 
     @Override
