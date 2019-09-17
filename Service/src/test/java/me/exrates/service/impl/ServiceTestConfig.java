@@ -407,7 +407,7 @@ public class ServiceTestConfig {
 
     @Bean
     public StompMessenger stompMessenger() {
-        return new StompMessengerImpl();
+        return new StompMessengerImpl(messagingTemplate, registry, userService, redisUserNotificationService, wsSessionService, objectMapper, currencyService);
     }
 
     @Bean

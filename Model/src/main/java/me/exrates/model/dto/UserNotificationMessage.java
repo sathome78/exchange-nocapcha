@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @Builder
 public class UserNotificationMessage {
 
+    private String messageId;
     private WsSourceTypeEnum sourceTypeEnum;
     private UserNotificationType notificationType;
     private String text;
