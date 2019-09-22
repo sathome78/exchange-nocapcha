@@ -28,9 +28,6 @@ import java.util.concurrent.TimeUnit;
 @PropertySource(value = {"classpath:/angular.properties"})
 public class GeoLocationRepositoryImpl implements GeoLocationRepository {
 
-    private final LoadingCache<String, GeoLocation> loadingCache = CacheBuilder.newBuilder()
-            .expireAfterWrite(1, TimeUnit.HOURS)
-            .build(createCacheLoader());
     private DatabaseReader dbReader;
 
     public GeoLocationRepositoryImpl(@Value("${geo.database.file.path}") String dbFilePath) {
@@ -46,13 +43,8 @@ public class GeoLocationRepositoryImpl implements GeoLocationRepository {
     }
 
     @Override
-    public Optional<GeoLocation> findById(String ipAddress) {
-        try {
-            return Optional.ofNullable(loadingCache.get(ipAddress));
-        } catch (ExecutionException e) {
-            log.info("Failed to find geo location from ip: " + ipAddress, e);
-            return Optional.empty();
-        }
+    public Optional<GeoLocation> findByIP(String ipAddress) {
+        return Optional.ofNullable(findLocation(ipAddress));
     }
 
     @VisibleForTesting
@@ -67,15 +59,6 @@ public class GeoLocationRepositoryImpl implements GeoLocationRepository {
             log.info("Failed to find city response for ip: " + ip, e);
         }
         return GeoLocation.empty();
-    }
-
-    private CacheLoader<String, GeoLocation> createCacheLoader() {
-        return new CacheLoader<String, GeoLocation>() {
-            @Override
-            public GeoLocation load(String ip) {
-                return findLocation(ip);
-            }
-        };
     }
 
     private GeoLocation getGeoLocation(CityResponse response) {

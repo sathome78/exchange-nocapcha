@@ -5,5 +5,5 @@ import java.util.Optional;
 
 public interface GeoLocationRepository {
 
-    Optional<GeoLocation> findById(String ipAddress);
+    Optional<GeoLocation> findByIP(String ipAddress);
 }

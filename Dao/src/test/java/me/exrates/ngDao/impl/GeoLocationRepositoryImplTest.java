@@ -27,7 +27,7 @@ public class GeoLocationRepositoryImplTest {
 
     @Test
     public void findById_whenIpIsValid() {
-        final Optional<GeoLocation> result = geoLocationRepository.findById("3.18.138.166");
+        final Optional<GeoLocation> result = geoLocationRepository.findByIP("3.18.138.166");
         assertTrue(result.isPresent());
 
         final GeoLocation geoLocation = result.get();
@@ -38,7 +38,7 @@ public class GeoLocationRepositoryImplTest {
 
     @Test
     public void findById_whenIpIsPartiallyValid() {
-        final Optional<GeoLocation> result = geoLocationRepository.findById("123.18.138.166");
+        final Optional<GeoLocation> result = geoLocationRepository.findByIP("123.18.138.166");
         assertTrue(result.isPresent());
 
         final GeoLocation geoLocation = result.get();
@@ -49,7 +49,7 @@ public class GeoLocationRepositoryImplTest {
 
     @Test
     public void findById_whenIpIsInvalid() {
-        final Optional<GeoLocation> result = geoLocationRepository.findById("192.168.0.1");
+        final Optional<GeoLocation> result = geoLocationRepository.findByIP("192.168.0.1");
         assertTrue(result.isPresent());
 
         final GeoLocation geoLocation = result.get();
