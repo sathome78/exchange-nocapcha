@@ -16,6 +16,7 @@ import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.vo.BackDealInterval;
+import me.exrates.ngService.RedisUserNotificationService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
 import me.exrates.service.OrderService;
@@ -63,6 +64,7 @@ public class WsControllerTest {
     private OrderService orderService;
     private CurrencyService currencyService;
     private ObjectMapper objectMapper;
+    private RedisUserNotificationService redisUserNotificationService;
     private UserService userService;
     private UsersAlertsService usersAlertsService;
     private IEOService ieoService;
@@ -79,13 +81,13 @@ public class WsControllerTest {
         this.usersAlertsService = Mockito.mock(UsersAlertsService.class);
 
         WsController wsController = new WsController(
-                orderService,
                 currencyService,
+                ieoService,
                 objectMapper,
-                redisUserNotificationService, userService,
-                usersAlertsService,
-                ieoService
-        );
+                orderService,
+                redisUserNotificationService,
+                userService,
+                usersAlertsService);
 
         this.clientOutboundChannel = new TestMessageChannel();
 

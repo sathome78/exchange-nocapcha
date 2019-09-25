@@ -19,4 +19,10 @@ public class UserNotificationMessage {
     private WsSourceTypeEnum sourceTypeEnum;
     private UserNotificationType notificationType;
     private String text;
+
+    public UserNotificationMessage(WsSourceTypeEnum sourceTypeEnum, UserNotificationType notificationType, String text) {
+        this.sourceTypeEnum = sourceTypeEnum;
+        this.notificationType = notificationType;
+        this.text = text;
+    }
 }
