@@ -54,7 +54,7 @@ public class LiqpayMerchantController {
         Map responseData = liqpayService.getResponse(data);
         logger.info("Response: " + response);
 
-        Transaction transaction = transactionService.findByIP(Integer.parseInt(String.valueOf(responseData.get("order_id"))));
+        Transaction transaction = transactionService.findById(Integer.parseInt(String.valueOf(responseData.get("order_id"))));
         Double transactionSum = transaction.getAmount().add(transaction.getCommissionAmount()).doubleValue();
 
         if ((responseData.get("status").equals("success"))
@@ -91,7 +91,7 @@ public class LiqpayMerchantController {
         Map responseData = liqpayService.getResponse(data);
         logger.info("Response: " + response);
 
-        Transaction transaction = transactionService.findByIP(Integer.parseInt(String.valueOf(responseData.get("order_id"))));
+        Transaction transaction = transactionService.findById(Integer.parseInt(String.valueOf(responseData.get("order_id"))));
         Double transactionSum = transaction.getAmount().add(transaction.getCommissionAmount()).doubleValue();
 
         if ((responseData.get("status").equals("success"))
