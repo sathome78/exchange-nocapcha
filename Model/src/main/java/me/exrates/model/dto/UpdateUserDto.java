@@ -17,6 +17,7 @@ public class UpdateUserDto {
 	private String finpassword;
 	private UserRole role;
 	private Boolean verificationRequired;
+	private Boolean tradesAllowed;
 
 	/*constructors*/
 	public UpdateUserDto(int id) {
@@ -87,5 +88,13 @@ public class UpdateUserDto {
 
 	public void setVerificationRequired(Boolean verificationRequired) {
 		this.verificationRequired = verificationRequired;
+	}
+
+	public Boolean isTradesAllowed() {
+		return tradesAllowed;
+	}
+
+	public void setTradesAllowed(Boolean tradesAllowed) {
+		this.tradesAllowed = tradesAllowed;
 	}
 }

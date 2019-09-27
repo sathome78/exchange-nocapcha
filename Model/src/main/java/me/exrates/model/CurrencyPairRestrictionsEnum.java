@@ -1,4 +1,4 @@
-package me.exrates.model.enums;
+package me.exrates.model;
 
 public enum CurrencyPairRestrictionsEnum {
 
