@@ -123,7 +123,7 @@ public class BlockchainServiceImplTest  {
                 .toString();
         given(algorithmService.sha256(seq)).willReturn(TRANSACTION_HASH);
         given(algorithmService.sha256(argThat(not(seq)))).willReturn("bad");
-        given(transactionService.findByIP(ID)).willReturn(transaction);
+        given(transactionService.findById(ID)).willReturn(transaction);
         given(btcTransactionDao.create(btcTransaction)).willReturn(btcTransaction);
         given(transactionService.createTransactionRequest(any())).willReturn(transaction);
         given(blockchainSDKWrapper.receive(fakes.get("xPub"), callback, fakes.get("apiCode")))
@@ -212,7 +212,7 @@ public class BlockchainServiceImplTest  {
         assertEquals(blockchainService.approveBlockchainTransaction(pendingPayment, pretendedPayment),
                 "Incorrect amount! Amount cannot change since it confirmed at least once");
         final InOrder inOrder = inOrder(transactionService);
-        inOrder.verify(transactionService).findByIP(ID);
+        inOrder.verify(transactionService).findById(ID);
     }
 
     @Test
@@ -223,14 +223,14 @@ public class BlockchainServiceImplTest  {
         assertEquals(blockchainService.approveBlockchainTransaction(pendingPayment, pretendedPayment),
                 "Waiting for confirmations");
         final InOrder inOrder = inOrder(transactionService);
-        inOrder.verify(transactionService).findByIP(ID);
+        inOrder.verify(transactionService).findById(ID);
     }
 
     @Test
     public void approveBlockchainTransactionShouldReturnOk() {
         assertEquals(blockchainService.approveBlockchainTransaction(pendingPayment, pretendedPayment), "*ok*");
         InOrder inOrder = inOrder(transactionService, pendingPaymentDao, btcTransactionDao);
-        inOrder.verify(transactionService).findByIP(pendingPayment.getInvoiceId());
+        inOrder.verify(transactionService).findById(pendingPayment.getInvoiceId());
         inOrder.verify(pendingPaymentDao).delete(pendingPayment.getInvoiceId());
         inOrder.verify(transactionService).provideTransaction(transaction);
         inOrder.verify(btcTransactionDao).create(btcTransaction);
