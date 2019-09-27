@@ -145,7 +145,7 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
             TODO REFILL
             этот код удалить. Но сам не стал, чтобы был перед глазами при изменении метода rescanUnusedAccounts в целом
 
-            Transaction transaction = transactionService.findByIP(account.getTransactionId());
+            Transaction transaction = transactionService.findById(account.getTransactionId());
             if (!transaction.isProvided()) {
 
               final BigDecimal targetAmount = transaction.getAmount().add(transaction.getCommissionAmount()).setScale(DEC_PLACES, ROUND_HALF_UP);
