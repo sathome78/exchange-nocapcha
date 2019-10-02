@@ -13,6 +13,7 @@ import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.PagingData;
 import me.exrates.model.Payment;
+import me.exrates.model.QuberaUserData;
 import me.exrates.model.RefillRequestAddressShortDto;
 import me.exrates.model.User;
 import me.exrates.model.condition.MonolitConditional;
@@ -57,6 +58,7 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.InputOutputService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.NotificationService;
+import me.exrates.service.QuberaService;
 import me.exrates.service.RefillService;
 import me.exrates.service.RequestLimitExceededException;
 import me.exrates.service.UserFilesService;
@@ -141,52 +143,39 @@ import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 @Conditional(MonolitConditional.class)
 public class RefillServiceImpl implements RefillService {
 
-    @Value("${invoice.blockNotifyUsers}")
-    private Boolean BLOCK_NOTIFYING;
-
     private static final Logger log = LogManager.getLogger("refill");
-
-    @Autowired
-    private MerchantDao merchantDao;
-
-    @Autowired
-    private CurrencyService currencyService;
-
-    @Autowired
-    private MessageSource messageSource;
-
-    @Autowired
-    private RefillRequestDao refillRequestDao;
-
-    @Autowired
-    private MerchantService merchantService;
-
-    @Autowired
-    private CompanyWalletService companyWalletService;
-
-    @Autowired
-    private WalletService walletService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private NotificationService notificationService;
-
     @Autowired
     TransactionDescription transactionDescription;
-
     @Autowired
     MerchantServiceContext merchantServiceContext;
-
-    @Autowired
-    private CommissionService commissionService;
-
-    @Autowired
-    private UserFilesService userFilesService;
-
     @Autowired
     InputOutputService inputOutputService;
+    @Value("${invoice.blockNotifyUsers}")
+    private Boolean BLOCK_NOTIFYING;
+    @Autowired
+    private MerchantDao merchantDao;
+    @Autowired
+    private CurrencyService currencyService;
+    @Autowired
+    private MessageSource messageSource;
+    @Autowired
+    private RefillRequestDao refillRequestDao;
+    @Autowired
+    private MerchantService merchantService;
+    @Autowired
+    private CompanyWalletService companyWalletService;
+    @Autowired
+    private WalletService walletService;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private NotificationService notificationService;
+    @Autowired
+    private CommissionService commissionService;
+    @Autowired
+    private UserFilesService userFilesService;
+    @Autowired
+    private QuberaService quberaService;
 
     @Override
     public Map<String, String> callRefillIRefillable(RefillRequestCreateDto request) {
@@ -289,10 +278,11 @@ public class RefillServiceImpl implements RefillService {
     @Override
     @Transactional
     public List<MerchantCurrency> retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies, String userEmail) {
-        Integer userId = userService.getIdByEmail(userEmail);
+        User user = userService.findByEmail(userEmail);
+
         merchantCurrencies.forEach(e -> {
 
-            e.setAddress(refillRequestDao.findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), userId).orElse(""));
+            e.setAddress(refillRequestDao.findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), user.getId()).orElse(""));
             /**/
             //TODO: Temporary fix
             if (e.getMerchantId() == merchantService.findByName("EDC").getId()) {
@@ -309,8 +299,30 @@ public class RefillServiceImpl implements RefillService {
             if (!StringUtils.isEmpty(e.getAddress()) && merchantService.concatAdditionalToMainAddress()) {
                 e.setAddress(merchantService.getMainAddress().concat(e.getAddress()));
             }
+
+            setNeedKyc(e, user);
+
         });
         return merchantCurrencies;
+    }
+
+    @Override
+    public void setNeedKyc(MerchantCurrency merchantCurrency, User user) {
+
+        if (merchantCurrency.getNeedKycRefill()) {
+            switch (merchantCurrency.getVerificationType()) {
+                case ariadnext:
+                    QuberaUserData quberaUserData = quberaService.getUserDataByUserEmail(user.getEmail());
+                    if (quberaUserData != null) {
+                        String status = quberaUserData.getBankVerificationStatus();
+                        merchantCurrency.setNeedKycRefill(!status.equalsIgnoreCase("OK"));
+                    }
+                    break;
+                case shuftipro:
+                    merchantCurrency.setNeedKycRefill(!user.getKycStatus().equalsIgnoreCase("SUCCESS"));
+                    break;
+            }
+        }
     }
 
     @Override
@@ -534,7 +546,9 @@ public class RefillServiceImpl implements RefillService {
                     locale);
             String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
             userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
-            notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+            if (refillRequestFlatDto.getStatus() != RefillStatusEnum.ON_BCH_EXAM) {
+                notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+            }
         } else {
             throw new RefillRequestAppropriateNotFoundException(onBchExamDto.toString());
         }
@@ -613,6 +627,7 @@ public class RefillServiceImpl implements RefillService {
 
         RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
         /**/
+
         Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
         String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
         String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
@@ -620,8 +635,9 @@ public class RefillServiceImpl implements RefillService {
                 locale);
         String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
         userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
-        notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
-
+        if (refillRequestFlatDto.getStatus() != RefillStatusEnum.ON_BCH_EXAM) {
+            notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+        }
         return requestId;
     }
 
@@ -640,8 +656,9 @@ public class RefillServiceImpl implements RefillService {
                 locale);
         String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
         userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
-        notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
-
+        if (refillRequestFlatDto.getStatus() != RefillStatusEnum.ON_BCH_EXAM) {
+            notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+        }
         return requestId;
     }
 
@@ -669,7 +686,9 @@ public class RefillServiceImpl implements RefillService {
                     locale);
             String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
             userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
-            notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+            if (refillRequestFlatDto.getStatus() != RefillStatusEnum.ON_BCH_EXAM) {
+                notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+            }
         } else {
             throw new RefillRequestAppropriateNotFoundException(requestAcceptDto.toString());
         }
@@ -715,7 +734,9 @@ public class RefillServiceImpl implements RefillService {
                     locale);
             String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
             userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
-            notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+            if (refillRequestFlatDto.getStatus() != RefillStatusEnum.ON_BCH_EXAM) {
+                notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+            }
         }
     }
 
@@ -737,7 +758,9 @@ public class RefillServiceImpl implements RefillService {
                         locale);
                 String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
                 userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
-                notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+                if (refillRequestFlatDto.getStatus() != RefillStatusEnum.ON_BCH_EXAM) {
+                    notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+                }
             }
         } catch (Exception e) {
             throw new WithdrawRequestPostException(refillRequestFlatDto.toString());
@@ -1055,7 +1078,9 @@ public class RefillServiceImpl implements RefillService {
                 }
                 String userEmail = userService.getEmailById(refillRequest.getUserId());
                 userService.addUserComment(REFILL_DECLINE, comment, userEmail, false);
-                notificationService.notifyUser(refillRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
+                if (newStatus != RefillStatusEnum.ON_BCH_EXAM) {
+                    notificationService.notifyUser(refillRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
+                }
             }
             profileData.setTime3();
         } finally {
