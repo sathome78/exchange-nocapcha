@@ -2252,7 +2252,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public String getAllCurrenciesStatForRefreshForAllPairs() {
         try {
-            return new ObjectMapper().writeValueAsString(this.processStatistic(exchangeRatesHolder.getAllRates()));
+            return objectMapper.writeValueAsString(this.processStatistic(exchangeRatesHolder.getAllRates()));
         } catch (JsonProcessingException e) {
             log.error(e);
             return "[]";
