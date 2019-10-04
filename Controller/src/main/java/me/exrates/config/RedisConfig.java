@@ -3,7 +3,6 @@ package me.exrates.config;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -27,13 +26,6 @@ public class RedisConfig {
     @Value("${redis.port}")
     private int port;
 
-    private final ObjectMapper objectMapper;
-
-    @Autowired
-    public RedisConfig(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
-
     @Bean
     public JedisPoolConfig poolConfig() {
         final JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
@@ -54,18 +46,14 @@ public class RedisConfig {
     }
 
     @Bean
+    @Qualifier("exratesRedisTemplate")
     RedisTemplate<String, Object> redisTemplate() {
         final RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(jedisConnFactory());
         template.setKeySerializer(new StringRedisSerializer());
         template.setHashKeySerializer(new StringRedisSerializer());
-
         Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
-        ObjectMapper om = new ObjectMapper();
-        om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-        om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-        jackson2JsonRedisSerializer.setObjectMapper(om);
-
+        jackson2JsonRedisSerializer.setObjectMapper(buildRedisObjectMapper());
         template.setHashValueSerializer(jackson2JsonRedisSerializer);
         template.setValueSerializer(jackson2JsonRedisSerializer);
         template.afterPropertiesSet();
@@ -73,13 +61,12 @@ public class RedisConfig {
     }
 
     @Bean
+    @Qualifier("stringRedisTemplate")
     public StringRedisTemplate stringRedisTemplate() {
         final StringRedisTemplate template = new StringRedisTemplate(jedisConnFactory());
         template.setKeySerializer(new StringRedisSerializer());
         Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
-        objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-        objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-        jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
+        jackson2JsonRedisSerializer.setObjectMapper(buildRedisObjectMapper());
         template.setHashValueSerializer(jackson2JsonRedisSerializer);
         template.setValueSerializer(jackson2JsonRedisSerializer);
         template.afterPropertiesSet();
@@ -90,5 +77,12 @@ public class RedisConfig {
     @Qualifier("hashOperations")
     public HashOperations<String, String, String> hashOperations() {
         return stringRedisTemplate().opsForHash();
+    }
+
+    private ObjectMapper buildRedisObjectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+        objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+        return objectMapper;
     }
 }

@@ -1,5 +1,6 @@
 package me.exrates.service.handler;
 
+import com.antkorwin.xsync.XSync;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
@@ -19,6 +20,7 @@ import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CancelOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
+import me.exrates.service.events.EventsForDetailed.AcceptDetailOrderEvent;
 import me.exrates.service.events.EventsForDetailed.DetailOrderEvent;
 import me.exrates.service.events.OrderEvent;
 import me.exrates.service.events.PartiallyAcceptedOrder;
@@ -42,19 +44,28 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
@@ -103,6 +114,8 @@ public class OrdersEventHandleService {
     private Map<Integer, UserPersonalOrdersHandler> personalOrdersHandlerMap = new ConcurrentHashMap<>();
 
     private final static ExecutorService handlersExecutors = Executors.newCachedThreadPool();
+    private XSync<Integer> dealsSync = new XSync<>();
+
 
     @Async
     @TransactionalEventListener
@@ -137,32 +150,6 @@ public class OrdersEventHandleService {
         }
     }
 
-    @Async
-    @TransactionalEventListener
-    public void handleOrderPersonalEventAsync(DetailOrderEvent event) {
-        try {
-            List<ExOrder> orderList;
-            if (event.getOrderEventEnum() == OrderEventEnum.AUTO_ACCEPT) {
-                orderList = (List<ExOrder>) event.getSource();
-            } else {
-                orderList = Collections.singletonList(((ExOrder) event.getSource()));
-            }
-            CompletableFuture.runAsync(() -> {
-                List<ExOrder> orders = orderList.stream()
-                        .filter(p -> nonNull(p) && p.getStatus() == OrderStatus.CLOSED)
-                        .sorted(Comparator.comparing(ExOrder::getDateAcception))
-                        .collect(Collectors.toList());
-                orders.forEach(p -> ratesHolder.onRatesChange(p));
-                if (!orders.isEmpty()) {
-                    currencyStatisticsHandler.onEvent(event.getPairId());
-                }
-            }, handlersExecutors);
-//            handlePersonalOrders(orderList, event.getPairId());  not used now
-        } catch (Exception e) {
-            ExceptionUtils.printRootCauseStackTrace(e);
-        }
-    }
-
     private void handleAcceptorUserId(ExOrder exOrder) {
         String url = userService.getCallBackUrlByUserAcceptorId(exOrder.getUserAcceptorId(), exOrder.getCurrencyPairId());
         try {
@@ -177,17 +164,25 @@ public class OrdersEventHandleService {
     @TransactionalEventListener
     public void handleOrderEventAsync(AcceptOrderEvent event) {
         ExOrder order = (ExOrder) event.getSource();
-        handleAllTrades(order);
-        handleMyTrades(order);
-        onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
-    }
-
-    @Async
-    @TransactionalEventListener
-    public void handleChartMessages(AcceptOrderEvent event) {
-        ExOrder order = (ExOrder) event.getSource();
-        System.out.println("order accepted " + order.getCurrencyPair().getName());
-        rabbitMqService.sendTradeInfo(order);
+        dealsSync.execute(order.getCurrencyPairId(), () -> {
+            List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
+            log.info("order accepted " + order.getCurrencyPair().getName());
+            completableFutures.add(CompletableFuture.runAsync(() -> rabbitMqService.sendTradeInfo(order), handlersExecutors));
+            completableFutures.add(CompletableFuture.runAsync(() -> handleAllTrades(order), handlersExecutors));
+            completableFutures.add(CompletableFuture.runAsync(() -> handleMyTrades(order), handlersExecutors));
+            completableFutures.add(CompletableFuture.runAsync(() -> onOrdersEvent(order.getCurrencyPairId(), order.getOperationType()), handlersExecutors));
+            completableFutures.add(CompletableFuture.runAsync(() -> {
+                ratesHolder.onRatesChange(order);
+                currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
+            }, handlersExecutors));
+            try {
+                CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]))
+                        .exceptionally(ex -> null)
+                        .get(5, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                ExceptionUtils.printRootCauseStackTrace(e);
+            }
+        });
     }
 
     private void handleCallBack(OrderEvent event) throws JsonProcessingException {
@@ -209,17 +204,6 @@ public class OrdersEventHandleService {
         }
     }
 
-    private boolean userHasAuthority(UserRole authority) {
-        List<GrantedAuthority> authorities = (List<GrantedAuthority>) SecurityContextHolder.getContext().getAuthentication().getAuthorities();
-
-        for (GrantedAuthority grantedAuthority : authorities) {
-            if (authority.toString().equals(grantedAuthority.getAuthority())) {
-                return true;
-            }
-        }
-
-        return false;
-    }
 
     private CallBackLogDto makeCallBack(ExOrder order, String url, int userId) throws JsonProcessingException {
         CallBackLogDto callbackLog = new CallBackLogDto();
@@ -337,15 +321,15 @@ public class OrdersEventHandleService {
         }
     }
 
-    @Async
-    void handleAllTrades(ExOrder exOrder) {
+
+    private void handleAllTrades(ExOrder exOrder) {
         TradesEventsHandler handler = mapTrades
                 .computeIfAbsent(exOrder.getCurrencyPairId(), k -> TradesEventsHandler.init(exOrder.getCurrencyPairId()));
         handler.onAcceptOrderEvent();
     }
 
-    @Async
-    void handleMyTrades(ExOrder exOrder) {
+
+    private void handleMyTrades(ExOrder exOrder) {
         MyTradesHandler handler = mapMyTrades
                 .computeIfAbsent(exOrder.getCurrencyPairId(), k -> MyTradesHandler.init(exOrder.getCurrencyPairId()));
         handler.onAcceptOrderEvent(exOrder.getUserId());
