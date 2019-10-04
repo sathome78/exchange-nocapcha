@@ -601,16 +601,17 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return handlers;
     }
 
+    @Bean(name = "multipartResolver")
+    public StandardServletMultipartResolver resolver() {
+        return new StandardServletMultipartResolver();
+    }
+
 
     /*@Bean
     public StoreSessionListener storeSessionListener() {
         return new StoreSessionListenerImpl();
     }*/
 
-    @Bean(name = "multipartResolver")
-    public StandardServletMultipartResolver resolver() {
-        return new StandardServletMultipartResolver();
-    }
 
     @Bean
     public LoggingAspect loggingAspect() {
@@ -2108,6 +2109,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public EthTokenService mexcServiceImpl() {
         List<String> tokensList = ImmutableList.of("0x7de2d123042994737105802d2abd0a10a7bde276");
         return new EthTokenServiceImpl(tokensList, "MEXC", "MEXC", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "czoServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService czoServiceImpl() {
+        List<String> tokensList = ImmutableList.of("0x029e7fe6fe4674af2f82c46f99b7a5cffe8041d4");
+        return new EthTokenServiceImpl(tokensList, "CZO", "CZO", false, ExConvert.Unit.ETHER);
     }
 
     @Bean
