@@ -25,7 +25,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 
-@Log4j2
+@Log4j2(topic = "adgroup_log")
 @Service
 public class AdGroupHttpClient {
 

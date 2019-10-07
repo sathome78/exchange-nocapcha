@@ -88,7 +88,7 @@ public class AdgroupServiceImpl implements AdgroupService {
 
     @PostConstruct
     void startAdgroup() {
-        newTxCheckerScheduler.scheduleAtFixedRate(this::regularlyCheckStatusTransactions, 10, 60, TimeUnit.MINUTES);
+        newTxCheckerScheduler.scheduleAtFixedRate(this::regularlyCheckStatusTransactions, 10, 15, TimeUnit.MINUTES);
     }
 
     @Override
@@ -194,7 +194,7 @@ public class AdgroupServiceImpl implements AdgroupService {
             log.info("*** Ad_Group stopped check tx, empty list ***");
             return;
         }
-        log.info("Staring check transactions {}", pendingTx);
+        log.info("Staring check transactions size {}", pendingTx.size());
         final String requestUrl = url + "/transfer/get-merchant-tx";
         List<String> txStrings = pendingTx.stream().map(RefillRequestFlatDto::getMerchantTransactionId).collect(Collectors.toList());
 
@@ -210,11 +210,11 @@ public class AdgroupServiceImpl implements AdgroupService {
         AdGroupResponseDto<ResponseListTxDto> responseDto =
                 httpClient.getTransactions(requestUrl, getAuthorizationKey(), requestDto);
 
-        log.info("Response from adgroup {}", responseDto);
+        log.info("Response from adgroup size tx {}", responseDto.getResponseData().getTransactions().size());
         for (RefillRequestFlatDto transaction : pendingTx) {
             responseDto.getResponseData().getTransactions()
                     .stream()
-                    .filter(tx -> tx.getRefid().equalsIgnoreCase(transaction.getMerchantTransactionId()))
+                    .filter(tx -> tx.getId().equalsIgnoreCase(transaction.getMerchantTransactionId()))
                     .peek(tx -> {
                         switch (TxStatus.valueOf(tx.getTxStatus())) {
                             case APPROVED:
