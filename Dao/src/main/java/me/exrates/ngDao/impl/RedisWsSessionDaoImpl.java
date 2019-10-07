@@ -25,11 +25,10 @@ import java.util.concurrent.TimeUnit;
 public class RedisWsSessionDaoImpl implements RedisWsSessionDao {
 
     private final String REDIS_SESSION_MAP = "REDIS_WS_SESSION_MAP";
-    private final ExecutorService executorService = Executors.newCachedThreadPool();
 
     private final HashOperations<String, String, String> hashOperations;
     private LoadingCache<String, String> redisCache = CacheBuilder.newBuilder()
-            .refreshAfterWrite(5, TimeUnit.MINUTES)
+            .expireAfterWrite(5, TimeUnit.MINUTES)
             .build(createCacheLoader());
 
     @Autowired
@@ -68,14 +67,6 @@ public class RedisWsSessionDaoImpl implements RedisWsSessionDao {
             @Override
             public String load(@NonNull String email) {
                 return hashOperations.get(REDIS_SESSION_MAP, email);
-            }
-
-            @Override
-            public ListenableFuture<String> reload(final String email, String sessionId) {
-                ListenableFutureTask<String> command =
-                        ListenableFutureTask.create(() -> hashOperations.get(REDIS_SESSION_MAP, email));
-                executorService.execute(command);
-                return command;
             }
         };
     }
