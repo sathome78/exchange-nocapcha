@@ -128,10 +128,11 @@ public class AdgroupServiceImpl implements AdgroupService {
         Currency currency = currencyService.findByName(params.get("currency"));
         Merchant merchant = merchantService.findById(Integer.parseInt(params.get("merchantId")));
         int userId = Integer.parseInt(params.get("userId"));
+        int requestId = Integer.parseInt(params.get("requestId"));
 
         String paymentAmount = params.getOrDefault("amount", "0");
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-                .requestId(0)
+                .requestId(requestId)
                 .merchantId(merchant.getId())
                 .currencyId(currency.getId())
                 .amount(new BigDecimal(paymentAmount))
@@ -139,9 +140,10 @@ public class AdgroupServiceImpl implements AdgroupService {
                 .merchantTransactionId(params.get("paymentId"))
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
-        Integer requestId = refillService.createAndAutoAcceptRefillRequest(requestAcceptDto, userId);
+
+        refillService.autoAcceptRefillRequest(requestAcceptDto);
         log.info("requestId {}", requestId);
-        params.put("request_id", requestId.toString());
+        params.put("request_id", String.valueOf(requestId));
         sendNotification(userId, paymentAmount, currency.getName());
 
         refillRequestDao.setRemarkById(requestId, "SUCCESS");
@@ -224,6 +226,7 @@ public class AdgroupServiceImpl implements AdgroupService {
                         params.put("paymentId", transaction.getMerchantTransactionId());
                         params.put("userId", String.valueOf(transaction.getUserId()));
                         params.put("merchantId", String.valueOf(transaction.getMerchantId()));
+                        params.put("requestId", String.valueOf(transaction.getId()));
                         try {
                             processPayment(params);
                         } catch (RefillRequestAppropriateNotFoundException e) {
