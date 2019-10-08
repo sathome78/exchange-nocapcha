@@ -2,6 +2,7 @@ package me.exrates.service.stomp;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import lombok.SneakyThrows;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;

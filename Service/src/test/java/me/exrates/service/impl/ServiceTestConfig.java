@@ -409,8 +409,8 @@ public class ServiceTestConfig {
 
     @Bean
     public StompMessenger stompMessenger() {
-        return new StompMessengerImpl(defaultSimpUserRegistry(), objectMapper(), orderService(), redisUserNotificationService(),
-                redisWsSessionService(), simpMessagingTemplate(), userService());
+        return new StompMessengerImpl(defaultSimpUserRegistry(), objectMapper(), orderService(),
+                redisUserNotificationService(), redisWsSessionService(), simpMessagingTemplate(), userService());
     }
 
     @Bean
