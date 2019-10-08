@@ -157,6 +157,7 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
                 .callBack(callBackUrl)
                 .build();
 
+        log.info("Starting send request to withdraw");
         CoinPayWithdrawRequestDto response = coinpayApi.createWithdrawRequest(token, request);
 
         Map<String, String> result = new HashMap<>();
@@ -179,6 +180,7 @@ public class CoinPayMerchantServiceImpl implements CoinPayMerchantService {
         }
 
         if (params.get("status").equalsIgnoreCase("CLOSED")) {
+            log.info("withdraw status for request {} CLOSED", request.getId());
             withdrawService.finalizePostWithdrawalRequest(request.getId());
         } else {
             withdrawService.rejectToReview(request.getId());

@@ -22,6 +22,7 @@ import me.exrates.model.dto.merchants.adgroup.responses.AdGroupResponseDto;
 import me.exrates.model.dto.merchants.adgroup.responses.InvoiceDto;
 import me.exrates.model.dto.merchants.adgroup.responses.ResponseListTxDto;
 import me.exrates.model.dto.merchants.adgroup.responses.ResponsePayOutDto;
+import me.exrates.model.dto.merchants.adgroup.responses.TransactionResponseDto;
 import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
@@ -127,10 +128,11 @@ public class AdgroupServiceImpl implements AdgroupService {
         Currency currency = currencyService.findByName(params.get("currency"));
         Merchant merchant = merchantService.findById(Integer.parseInt(params.get("merchantId")));
         int userId = Integer.parseInt(params.get("userId"));
+        int requestId = Integer.parseInt(params.get("requestId"));
 
         String paymentAmount = params.getOrDefault("amount", "0");
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-                .requestId(0)
+                .requestId(requestId)
                 .merchantId(merchant.getId())
                 .currencyId(currency.getId())
                 .amount(new BigDecimal(paymentAmount))
@@ -138,9 +140,10 @@ public class AdgroupServiceImpl implements AdgroupService {
                 .merchantTransactionId(params.get("paymentId"))
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
-        Integer requestId = refillService.createAndAutoAcceptRefillRequest(requestAcceptDto, userId);
+
+        refillService.autoAcceptRefillRequest(requestAcceptDto);
         log.info("requestId {}", requestId);
-        params.put("request_id", requestId.toString());
+        params.put("request_id", String.valueOf(requestId));
         sendNotification(userId, paymentAmount, currency.getName());
 
         refillRequestDao.setRemarkById(requestId, "SUCCESS");
@@ -212,33 +215,30 @@ public class AdgroupServiceImpl implements AdgroupService {
 
         log.info("Response from adgroup size tx {}", responseDto.getResponseData().getTransactions().size());
         for (RefillRequestFlatDto transaction : pendingTx) {
-            responseDto.getResponseData().getTransactions()
-                    .stream()
-                    .filter(tx -> tx.getId().equalsIgnoreCase(transaction.getMerchantTransactionId()))
-                    .peek(tx -> {
-                        switch (TxStatus.valueOf(tx.getTxStatus())) {
-                            case APPROVED:
-                                Map<String, String> params = new HashMap<>();
-                                params.put("amount", tx.getAmount().toString());
-                                params.put("currency", tx.getCurrency());
-                                params.put("paymentId", transaction.getMerchantTransactionId());
-                                params.put("userId", String.valueOf(transaction.getUserId()));
-                                params.put("merchantId", String.valueOf(transaction.getMerchantId()));
-                                try {
-                                    processPayment(params);
-                                } catch (RefillRequestAppropriateNotFoundException e) {
-                                    log.error("Error while processing payment {}, e {}", params, e);
-                                }
-                                break;
-                            case INVOICE:
-                            case PENDING:
-                            case CREATED:
-                                break;
-                            case REJECTED:
-                                refillRequestDao.setRemarkById(transaction.getId(), "REJECTED");
-                                break;
+            for (TransactionResponseDto tx : responseDto.getResponseData().getTransactions()) {
+                if (transaction.getMerchantTransactionId().equalsIgnoreCase(tx.getId())) {
+                    TxStatus txStatus = TxStatus.valueOf(tx.getTxStatus());
+
+                    if (txStatus == TxStatus.APPROVED) {
+                        Map<String, String> params = new HashMap<>();
+                        params.put("amount", tx.getAmount().toString());
+                        params.put("currency", tx.getCurrency());
+                        params.put("paymentId", transaction.getMerchantTransactionId());
+                        params.put("userId", String.valueOf(transaction.getUserId()));
+                        params.put("merchantId", String.valueOf(transaction.getMerchantId()));
+                        params.put("requestId", String.valueOf(transaction.getId()));
+                        try {
+                            processPayment(params);
+                        } catch (RefillRequestAppropriateNotFoundException e) {
+                            log.error("Error while processing payment {}, e {}", params, e);
                         }
-                    });
+                    }
+
+                    if (txStatus == TxStatus.REJECTED) {
+                        refillRequestDao.setRemarkById(transaction.getId(), "REJECTED");
+                    }
+                }
+            }
         }
     }
 
