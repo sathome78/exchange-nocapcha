@@ -27,7 +27,7 @@ public class RedisWsSessionDaoImpl implements RedisWsSessionDao {
     private final String REDIS_SESSION_MAP = "REDIS_WS_SESSION_MAP";
 
     private final HashOperations<String, String, String> hashOperations;
-    private LoadingCache<String, String> redisCache = CacheBuilder.newBuilder()
+    private LoadingCache<String, Optional<String>> redisCache = CacheBuilder.newBuilder()
             .expireAfterWrite(5, TimeUnit.MINUTES)
             .build(createCacheLoader());
 
@@ -50,9 +50,9 @@ public class RedisWsSessionDaoImpl implements RedisWsSessionDao {
     @Override
     public Optional<String> getSessionId(String email) {
         try {
-            return Optional.ofNullable(redisCache.get(email));
+            return redisCache.get(email);
         } catch (Exception e) {
-            log.info("Failed to get sessionId from email: " + email, e);
+            log.debug("Failed to get sessionId from email: " + email, e);
             return Optional.empty();
         }
     }
@@ -62,11 +62,11 @@ public class RedisWsSessionDaoImpl implements RedisWsSessionDao {
         return hashOperations.entries(REDIS_SESSION_MAP);
     }
 
-    private CacheLoader<String, String> createCacheLoader() {
-        return new CacheLoader<String, String>() {
+    private CacheLoader<String, Optional<String>> createCacheLoader() {
+        return new CacheLoader<String, Optional<String>>() {
             @Override
-            public String load(@NonNull String email) {
-                return hashOperations.get(REDIS_SESSION_MAP, email);
+            public Optional<String> load(@NonNull String email) {
+                return Optional.ofNullable(hashOperations.get(REDIS_SESSION_MAP, email));
             }
         };
     }
