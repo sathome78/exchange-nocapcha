@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -46,11 +47,16 @@ public class CoinPayMerchantController {
 
     @RequestMapping(value = "/payment/status/withdraw/{id}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> statusPaymentWithdraw(@PathVariable("id") String id,
-                                                      @RequestBody Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+                                                      @RequestBody Map<String, Object> params) throws RefillRequestAppropriateNotFoundException {
         final ResponseEntity<Void> responseOK = new ResponseEntity<>(OK);
         log.info("Response from withdraw callback: id {}, params {}", id, params);
+        Map<String, String> param = new HashMap<>();
+        if (params.get("status") == null) {
+            return responseOK;
+        }
+        param.put("status", (String) params.get("status"));
         try {
-            coinPayMerchantService.withdrawProcessCallBack(id, params);
+            coinPayMerchantService.withdrawProcessCallBack(id, param);
             return responseOK;
         } catch (WithdrawRequestNotFoundException e) {
             return responseOK;
