@@ -128,7 +128,7 @@ public class AdGroupHttpClient {
 
         if (!httpStatus.is2xxSuccessful()) {
             String errorString = "Error while createPayOut ";
-            log.error(errorString + " {}", responseEntity);
+            log.error(errorString + " {}", toJson(responseEntity));
             throw new NgDashboardException(ErrorApiTitles.AD_GROUP_HTTP_CLIENT_RESPONSE_NOT_200);
         }
         log.info("Response from createPayOut(): {}", toJson(responseEntity.getBody()));

@@ -39,7 +39,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -172,7 +171,11 @@ public class AdgroupServiceImpl implements AdgroupService {
         if (!responseDto.getResponseData().getStatus().equalsIgnoreCase("APPROVED")) {
             throw new MerchantException("Not approved");
         }
-        return Collections.emptyMap();
+
+        Map<String, String> result = new HashMap<>();
+        result.put("hash", responseDto.getResponseData().getId());
+        result.put("params", responseDto.getResponseData().getRefId());
+        return result;
     }
 
     @Override

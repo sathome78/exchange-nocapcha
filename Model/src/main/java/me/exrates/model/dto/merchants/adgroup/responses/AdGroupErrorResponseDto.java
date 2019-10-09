@@ -1,20 +1,18 @@
 package me.exrates.model.dto.merchants.adgroup.responses;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.util.List;
-
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
 @ToString
-public class AdGroupResponseDto<T> {
-
-    private HeaderResponseDto header;
-    private ResultResponseDto result;
-    private T responseData;
-    private List<AdGroupErrorResponseDto> errors;
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class AdGroupErrorResponseDto {
+    private String code;
+    private String message;
+    private String field;
 }
