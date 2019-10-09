@@ -121,7 +121,7 @@ public class OrdersEventHandleService {
         }
 
         CompletableFuture.runAsync(() -> openOrdersRefreshHandler.onEvent(exOrder.getUserId(), exOrder.getCurrencyPair().getName()), handlersExecutors);
-        sendOrderEventNotification(exOrder).run();
+//        sendOrderEventNotification(exOrder).run();
 
         if (!DEV_MODE) {
             handleCallBack(event);
