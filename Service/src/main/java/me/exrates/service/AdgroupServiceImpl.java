@@ -161,7 +161,7 @@ public class AdgroupServiceImpl implements AdgroupService {
                 .currency(withdrawMerchantOperationDto.getCurrency())
                 .pin(pin)
                 .platform("YANDEX")
-                .address(withdrawMerchantOperationDto.getDestinationTag())
+                .address(withdrawMerchantOperationDto.getAccountTo())
                 .build();
 
         AdGroupCommonRequestDto requestDto = new AdGroupCommonRequestDto<>(header, requestPayOutDto);
