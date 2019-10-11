@@ -661,8 +661,8 @@ public class UserDaoImpl implements UserDao {
         if (user.getFinpassword() != null && !user.getFinpassword().isEmpty()) {
             fieldsStr.append("finpassword = '" + passwordEncoder.encode(user.getFinpassword())).append("',");
         }
-        if (user.isVerificationRequired() != null) {
-            fieldsStr.append("verification_required = " + user.isVerificationRequired()).append(",");
+        if (user.getVerificationRequired() != null) {
+            fieldsStr.append("verification_required = " + user.getVerificationRequired()).append(",");
         }
         if (fieldsStr.toString().trim().length() == 0) {
             return true;
@@ -1118,10 +1118,12 @@ public class UserDaoImpl implements UserDao {
     public void updatePinByUserEmail(String userEmail, String pin, NotificationMessageEventEnum event) {
         String sql = String.format("UPDATE USER SET %s_pin = :pin " +
                 "WHERE USER.email = :email", event.name().toLowerCase());
+
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
             put("email", userEmail);
             put("pin", pin);
         }};
+
         masterTemplate.update(sql, namedParameters);
     }
 

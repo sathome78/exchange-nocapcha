@@ -706,6 +706,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 //                "EOS", true, ExConvert.Unit.ETHER);
 //    }
 
+    @Bean(name = "etherincServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthereumCommonService etherincService() {
+        return new EthereumCommonServiceImpl("merchants/eti.properties",
+                "ETI", "ETI", 50);
+    }
+
     @Bean(name = "repServiceImpl")
     @Conditional(MonolitConditional.class)
     public EthTokenService RepService() {
