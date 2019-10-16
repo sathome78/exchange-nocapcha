@@ -14,6 +14,7 @@ import me.exrates.service.EnfinsMerchantService;
 import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
+import me.exrates.service.WithdrawService;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestRevokeException;
@@ -56,6 +57,7 @@ public class EnfinsMerchantServiceImpl implements EnfinsMerchantService {
     private final GtagService gtagService;
     private final boolean validateIncomePayment;
     private final CurrencyService currencyService;
+    private final WithdrawService withdrawService;
 
     @Autowired
     public EnfinsMerchantServiceImpl(@Value("${base_url_request}") String baseUrl,
@@ -70,7 +72,8 @@ public class EnfinsMerchantServiceImpl implements EnfinsMerchantService {
                                      RefillService refillService,
                                      GtagService gtagService,
                                      @Value("${validate_income_payment}") boolean validateIncomePayment,
-                                     CurrencyService currencyService) {
+                                     CurrencyService currencyService,
+                                     WithdrawService withdrawService) {
         this.baseUrl = baseUrl;
         this.ident = ident;
         this.secretKey = secretKey;
@@ -84,6 +87,7 @@ public class EnfinsMerchantServiceImpl implements EnfinsMerchantService {
         this.gtagService = gtagService;
         this.validateIncomePayment = validateIncomePayment;
         this.currencyService = currencyService;
+        this.withdrawService = withdrawService;
     }
 
     @Override
@@ -192,11 +196,13 @@ public class EnfinsMerchantServiceImpl implements EnfinsMerchantService {
         log.info("withdraw() final url {}", url);
         EnfinsResponseDto<EnfinsResponsePaymentDto> response = enfinsHttpClient.createPayOut(url);
         if (response.isResult() && response.getError() == null) {
+            withdrawService.finalizePostWithdrawalRequest(Integer.parseInt(withdrawMerchantOperationDto.getId()));
             Map<String, String> result = new HashMap<>();
             result.put("hash", String.valueOf(response.getData().getBillId()));
             result.put("params", StringUtils.EMPTY);
             return result;
         } else {
+            withdrawService.rejectToReview(Integer.parseInt(withdrawMerchantOperationDto.getId()));
             log.error("NOT SUCCESS MERCHANT OPERATION: {}", response.getError().getMessage());
             throw new WithdrawRequestPostException("NOT SUCCESS MERCHANT OPERATION, ERROR CODE " + response.getError().getCode());
         }

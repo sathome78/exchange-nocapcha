@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.service.EnfinsMerchantService;
 import me.exrates.service.exception.RefillRequestAlreadyAcceptedException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.exception.RefillRequestNotFoundException;
 import me.exrates.service.exception.RefillRequestRevokeException;
 import me.exrates.service.util.JsonUtils;
 import me.exrates.service.util.RestUtil;
@@ -57,6 +58,9 @@ public class EnfinsMerchantController {
             return new ResponseEntity<>("OK", HttpStatus.OK);
         } catch (RefillRequestRevokeException e) {
             log.info("Processed failed, but will return success response");
+            return new ResponseEntity<>("OK", HttpStatus.OK);
+        } catch (RefillRequestNotFoundException e) {
+            log.info("Processed failed, but will return success response, request not found");
             return new ResponseEntity<>("OK", HttpStatus.OK);
         } catch (Exception e) {
             log.info("Processed failed, error occurred", e);
