@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -28,13 +29,13 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 @PropertySource({"classpath:/merchants/enfins.properties"})
 public class EnfinsMerchantController {
 
-    private final String serverIP;
+    private final String serverIPs;
     private final EnfinsMerchantService enfinsMerchantService;
 
     @Autowired
     public EnfinsMerchantController(@Value("${server_ip}") String serverIP,
                                     EnfinsMerchantService enfinsMerchantService) {
-        this.serverIP = serverIP;
+        this.serverIPs = serverIP;
         this.enfinsMerchantService = enfinsMerchantService;
     }
 
@@ -42,7 +43,8 @@ public class EnfinsMerchantController {
     public ResponseEntity<?> statusPayment(HttpServletRequest servletRequest, @RequestParam Map<String, String> inputParams) throws RefillRequestAppropriateNotFoundException {
         String clientIpAddress = RestUtil.getClientIpAddress(servletRequest);
         log.info("Response from status callback: {}, IP {}", JsonUtils.toJson(inputParams), clientIpAddress);
-        if (!clientIpAddress.equalsIgnoreCase(serverIP)) {
+        String[] allowedIP = serverIPs.split(",");
+        if (Stream.of(allowedIP).noneMatch(ip -> ip.equalsIgnoreCase(clientIpAddress))) {
             log.error("Callback from not authorized server {}", clientIpAddress);
             return new ResponseEntity<>(BAD_REQUEST);
         }
