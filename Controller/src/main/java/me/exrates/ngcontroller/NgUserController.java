@@ -147,12 +147,14 @@ public class NgUserController {
         } else {
             PINCODE_CHECK_TRIES.put(user.getEmail(), numberOfTries(user.getEmail()) + 1);
             if (!userService.checkPin(authenticationDto.getEmail(), authenticationDto.getPin(), NotificationMessageEventEnum.LOGIN)) {
+                String emailAuthorizationFailedCode = ErrorApiTitles.EMAIL_AUTHORIZATION_FAILED;
                 if (numberOfTries(user.getEmail()) >= 3) {
                     secureService.sendLoginPincode(user, request, ipAddress);
                     PINCODE_CHECK_TRIES.invalidate(user.getEmail());
+                    emailAuthorizationFailedCode = ErrorApiTitles.EMAIL_AUTHORIZATION_FAILED_AND_RESENT;
                 }
                 String message = String.format("Invalid email auth code from user %s", authenticationDto.getEmail());
-                throw new NgResponseException(ErrorApiTitles.EMAIL_AUTHORIZATION_FAILED, message);
+                throw new NgResponseException(emailAuthorizationFailedCode, message);
             }
             PINCODE_CHECK_TRIES.invalidate(user.getEmail());
             userService.deleteUserPin(user.getEmail(), NotificationMessageEventEnum.LOGIN);
