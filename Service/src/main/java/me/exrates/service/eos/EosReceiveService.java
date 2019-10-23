@@ -9,7 +9,6 @@ import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.EosDataDto;
 import me.exrates.model.dto.MerchantSpecParamDto;
-import org.apache.log4j.BasicConfigurator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
@@ -48,9 +47,6 @@ public class EosReceiveService {
     @Value("${eos.main.address}")
     private String mainAccount;
 
-    @Value("${env.name}")
-    private String environment;
-
     @Autowired
     private MerchantSpecParamsDao specParamsDao;
     @Autowired
@@ -60,6 +56,8 @@ public class EosReceiveService {
 
     @PostConstruct
     private void init() {
+        String environment = System.getProperty("profileId")
+        if (environment.equals("prd")) {
             BasicConfigurator.configure();
             client = EosApiFactory.create("http://127.0.0.1:8900",
                     "https://api.eosnewyork.io",
