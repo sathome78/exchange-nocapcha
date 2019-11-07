@@ -47,9 +47,6 @@ public class User implements Serializable {
     // to skip trade restrictions check
     private Boolean hasTradesPrivileges;
 
-    // to skip trade restrictions check
-    private Boolean hasTradesPrivileges;
-
     public User() {
     }
 

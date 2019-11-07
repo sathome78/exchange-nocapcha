@@ -58,9 +58,4 @@ public class IpUtils {
         return ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
                         .getRequest();
     }
-
-    public static HttpServletRequest getCurrentRequest() {
-        return ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
-                        .getRequest();
-    }
 }
