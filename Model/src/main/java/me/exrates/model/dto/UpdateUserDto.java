@@ -1,6 +1,5 @@
 package me.exrates.model.dto;
 
-import lombok.Builder;
 import lombok.Data;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
