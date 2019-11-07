@@ -203,13 +203,10 @@ public class OrderServiceImpl implements OrderService {
     public static final String BUY = "BUY";
     public static final String SELL = "SELL";
     public static final String SCOPE = "ALL";
-    private final static String CONTENT_DISPOSITION = "Content-Disposition";
-    private final static String ATTACHMENT = "attachment; filename=";
     private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final DateTimeFormatter FORMATTER_FOR_NAME = DateTimeFormatter.ofPattern("dd_MM_yyyy_HH_mm");
     private static final int ORDERS_QUERY_DEFAULT_LIMIT = 20;
     private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
-    private static final Logger txLogger = LogManager.getLogger("ordersTxLogger");
     private final Object autoAcceptLock = new Object();
     private final Object restOrderCreationLock = new Object();
     //    @Value("#{BigDecimal.valueOf('${orders.max-exrate-deviation-percent}')}")
