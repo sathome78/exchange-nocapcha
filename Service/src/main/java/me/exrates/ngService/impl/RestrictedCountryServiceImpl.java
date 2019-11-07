@@ -3,6 +3,7 @@ package me.exrates.ngService.impl;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
 import lombok.extern.log4j.Log4j2;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,6 +25,9 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Log4j2
@@ -52,13 +57,15 @@ public class RestrictedCountryServiceImpl implements RestrictedCountryService {
     }
 
     @Override
-    public Set<RestrictedCountry> findAllByOperation(RestrictedOperation operation) {
-        return restrictedCountriesCache.asMap().getOrDefault(operation, Collections.emptySet());
-    }
-
-    @Override
-    public Set<RestrictedCountry> findAllByOperation(RestrictedOperation operation, int operationId) {
-        return restrictedCountryDao.findAll(operation, operationId);
+    public Set<RestrictedCountry> findAllByOperation(RestrictedOperation ... operations) {
+        Set<RestrictedOperation> ops = ImmutableSet.copyOf(operations);
+        return restrictedCountriesCache.asMap()
+                .entrySet()
+                .stream()
+                .filter(entry -> ops.contains(entry.getKey()))
+                .map(Map.Entry::getValue)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
     }
 
     @Override

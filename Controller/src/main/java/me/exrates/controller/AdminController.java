@@ -716,6 +716,7 @@ public class AdminController {
             /*updateUserDto.setPassword(user.getPassword());*/
             updateUserDto.setPhone(user.getPhone());
             updateUserDto.setVerificationRequired(user.getVerificationRequired());
+            updateUserDto.setTradesPrivileges(user.hasTradePrivileges());
             /*todo: Temporary commented for security reasons*/
             if (currentUserRole == ADMINISTRATOR) {
                 //Add to easy change user role to USER or VIP_USER !!! Not other

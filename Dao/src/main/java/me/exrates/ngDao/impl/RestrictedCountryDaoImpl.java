@@ -108,9 +108,8 @@ public class RestrictedCountryDaoImpl implements RestrictedCountryDao {
                 .id(rs.getInt(COLUMN_ID))
                 .operationId(rs.getInt(COLUMN_OP_ID))
                 .countryCode(rs.getString(COLUMN_COUNTRY_CODE))
-                .operation(RestrictedOperation.valueOf(rs.getString(COLUMN_OP_ID)))
                 .countryName(rs.getString(COLUMN_COUNTRY_NAME))
-                .countryCode(rs.getString(COLUMN_COUNTRY_CODE))
+                .operation(RestrictedOperation.valueOf(rs.getString(COLUMN_OP_ID)))
                 .build();
     }
 }
