@@ -17,6 +17,7 @@ import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
+import me.exrates.model.enums.MerchantKycToggleField;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
@@ -66,6 +67,7 @@ import java.io.FileInputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -175,6 +177,10 @@ public class MerchantServiceImpl implements MerchantService {
                 .getMessage("merchants.depositNotification.header", null, locale));
         mail.setMessage(notification);
 
+        Properties properties = new Properties();
+        properties.setProperty("public_id", userService.getPubIdByEmail(email));
+        mail.setProperties(properties);
+
         try {
       /* TODO temporary disable
       notificationService.createLocalizedNotification(email, NotificationEvent.IN_OUT,
@@ -222,6 +228,12 @@ public class MerchantServiceImpl implements MerchantService {
     public List<MerchantCurrencyApiDto> findNonTransferMerchantCurrencies(Integer currencyId) {
         return findMerchantCurrenciesByCurrencyAndProcessTypes(currencyId, Arrays.stream(MerchantProcessType.values())
                 .filter(item -> item != MerchantProcessType.TRANSFER).map(Enum::name).collect(Collectors.toList()));
+    }
+
+    @Override
+    public List<MerchantCurrencyApiDto> findTransferMerchantCurrenciesByCurrency(String currencyName) {
+        return merchantDao.findAllMerchantCurrencies(currencyService.findByName(currencyName).getId(),
+                userService.getUserRoleFromSecurityContext(),  Collections.singletonList(MerchantProcessType.TRANSFER.name()));
     }
 
     @Override
@@ -344,6 +356,18 @@ public class MerchantServiceImpl implements MerchantService {
     @Transactional
     public void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType) {
         merchantDao.toggleMerchantBlock(merchantId, currencyId, operationType);
+    }
+
+    @Override
+    @Transactional
+    public void toggleKycBlock(Integer merchantId, MerchantKycToggleField toggleField) {
+        merchantDao.toggleMerchantKyc(merchantId, toggleField);
+    }
+
+    @Override
+    @Transactional
+    public void updateKycType(Integer merchantId, String kycType) {
+        merchantDao.updateKycType(merchantId, kycType);
     }
 
     @Override

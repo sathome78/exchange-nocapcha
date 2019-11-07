@@ -27,7 +27,7 @@ import me.exrates.model.dto.AdminOrderInfoDto;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.BotTradingSettingsShortDto;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
-import me.exrates.model.dto.CandleDto;
+import me.exrates.model.chart.CandleDto;
 import me.exrates.model.dto.ComissionCountDto;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.CurrencyPairLimitDto;
@@ -72,7 +72,9 @@ import me.exrates.model.enums.AlertType;
 import me.exrates.model.enums.BusinessUserRoleEnum;
 import me.exrates.model.enums.RestrictedOperation;
 import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.MerchantKycToggleField;
 import me.exrates.model.enums.MerchantProcessType;
+import me.exrates.model.enums.MerchantVerificationType;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.NotificationPayTypeEnum;
 import me.exrates.model.enums.OperationType;
@@ -181,6 +183,7 @@ import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -223,6 +226,9 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 public class AdminController {
 
     private static final Logger LOG = LogManager.getLogger(AdminController.class);
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     public static String adminAnyAuthority;
     public static String nonAdminAnyAuthority;
     public static String traderAuthority;
@@ -1107,6 +1113,9 @@ public class AdminController {
         model.addAttribute("pairsRestrictions", Arrays.stream(RestrictedOperation.values())
                                                                    .map(Enum::name)
                                                                    .collect(Collectors.joining(",")));
+        model.addAttribute("kyc_types", Arrays.stream(MerchantVerificationType.values())
+                .map(Enum::name)
+                .collect(Collectors.joining(",")));
         return "admin/merchantAccess";
     }
 
@@ -1137,6 +1146,24 @@ public class AdminController {
                                             @RequestParam OperationType operationType) {
         LOG.debug("merchantId = " + merchantId + ", currencyId = " + currencyId + ", operationType = " + operationType);
         merchantService.toggleMerchantBlock(merchantId, currencyId, operationType);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess/toggleKycBlock", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<Void> toggleBlock(@RequestParam Integer merchantId,
+                                            @RequestParam MerchantKycToggleField toggleField) {
+        merchantService.toggleKycBlock(merchantId, toggleField);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess/kycType", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<Void> toggleBlock(@RequestParam Integer merchantId,
+                                            @RequestParam String kycType) {
+        merchantService.updateKycType(merchantId, kycType);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -1270,10 +1297,10 @@ public class AdminController {
                                               @RequestParam("startTime") String startTimeString) {
         final CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
         final BackDealInterval backDealInterval = new BackDealInterval(interval);
-        final LocalDateTime fromDate = LocalDateTime.parse(startTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        final LocalDateTime toDate = LocalDateTime.now();
+        final long from = LocalDateTime.parse(startTimeString, FORMATTER).atZone(ZoneOffset.UTC).toEpochSecond();
+        final long to = LocalDateTime.now().atZone(ZoneOffset.UTC).toEpochSecond();
 
-        return candleDataProcessingService.getData(currencyPair.getName(), fromDate, toDate, backDealInterval);
+        return candleDataProcessingService.getData(currencyPair.getName(), from, to, backDealInterval.getResolution());
     }
 
     private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
@@ -1980,11 +2007,11 @@ public class AdminController {
     @PostMapping(value = "/2a8fy7b07dxe44/withdrawCommission/submit")
     @ResponseBody
     public ResponseEntity withdrawCommissionToUser(@RequestParam String email,
-                                              @RequestParam("currency") Integer currencyId,
-                                              @RequestParam BigDecimal amount,
-                                              @RequestParam String comment,
-                                              Locale locale,
-                                              Principal principal) {
+                                                   @RequestParam("currency") Integer currencyId,
+                                                   @RequestParam BigDecimal amount,
+                                                   @RequestParam String comment,
+                                                   Locale locale,
+                                                   Principal principal) {
 
 
         LOG.debug(" withdraw commission to user email = " + email + ", currencyId = " + currencyId + ", amount = " + amount);

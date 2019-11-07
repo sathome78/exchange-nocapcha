@@ -86,7 +86,7 @@ public class UserDaoImpl implements UserDao {
     private final String SELECT_USER =
             "SELECT USER.id, u.email AS parent_email, USER.finpassword, USER.nickname, USER.email, USER.password, USER.regdate, " +
                     "USER.phone, USER.status, USER.kyc_status, USER_ROLE.name AS role_name, USER.country AS country, USER.pub_id, USER.verification_required, " +
-                    "USER.has_trade_privileges FROM USER " +
+                    "USER.has_trade_privileges, USER.GA FROM USER " +
                     "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LEFT JOIN REFERRAL_USER_GRAPH " +
                     "ON USER.id = REFERRAL_USER_GRAPH.child LEFT JOIN USER AS u ON REFERRAL_USER_GRAPH.parent = u.id ";
 
@@ -137,6 +137,9 @@ public class UserDaoImpl implements UserDao {
             try {
                 user.setParentEmail(resultSet.getString("parent_email")); // May not exist for some users
             } catch (final SQLException e) {/*NOP*/}
+            if (resultSet.getString("GA") != null) {
+                user.setGa(resultSet.getString("GA"));
+            }
             return user;
         };
     }
@@ -664,11 +667,11 @@ public class UserDaoImpl implements UserDao {
         if (user.getFinpassword() != null && !user.getFinpassword().isEmpty()) {
             fieldsStr.append("finpassword = '" + passwordEncoder.encode(user.getFinpassword())).append("',");
         }
-        if (user.isVerificationRequired() != null) {
-            fieldsStr.append("verification_required = " + user.isVerificationRequired()).append(",");
+        if (user.getVerificationRequired() != null) {
+            fieldsStr.append("verification_required = " + user.getVerificationRequired()).append(",");
         }
-        if (user.hasTradePrivileges() != null) {
-            fieldsStr.append("has_trade_privileges = " + user.hasTradePrivileges()).append(",");
+        if (user.getTradesPrivileges() != null) {
+            fieldsStr.append("has_trade_privileges = " + user.getTradesPrivileges()).append(",");
         }
         if (fieldsStr.toString().trim().length() == 0) {
             return true;
@@ -1585,5 +1588,27 @@ public class UserDaoImpl implements UserDao {
             put("token_type", tokenType.getTokenType());
         }};
         masterTemplate.update(sql, params);
+    }
+
+    @Override
+    public boolean subscribeToMailingByPublicId(String publicId, boolean subscribe) {
+        final String sql = "UPDATE USER u SET u.mailing_subscription = :subscribe WHERE u.pub_id = :public_id";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("public_id", publicId);
+            put("subscribe", subscribe);
+        }};
+        return masterTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public boolean subscribeToMailingByEmail(String email, boolean subscribe) {
+        final String sql = "UPDATE USER u SET u.mailing_subscription = :subscribe WHERE u.email = :email";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("email", email);
+            put("subscribe", subscribe);
+        }};
+        return masterTemplate.update(sql, params) > 0;
     }
 }

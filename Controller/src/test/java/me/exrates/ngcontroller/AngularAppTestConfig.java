@@ -8,6 +8,7 @@ import me.exrates.dao.WalletDao;
 import me.exrates.dao.chat.telegram.TelegramChatDao;
 import me.exrates.ngService.BalanceService;
 import me.exrates.ngService.NgOrderService;
+import me.exrates.ngService.RedisUserNotificationService;
 import me.exrates.ngService.UserVerificationService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.AuthTokenService;
@@ -45,6 +46,7 @@ import me.exrates.service.freecoins.FreecoinsSettingsService;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.G2faService;
+import me.exrates.service.session.UserLoginSessionsService;
 import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.userOperation.UserOperationService;
@@ -80,6 +82,11 @@ public class AngularAppTestConfig {
     @Bean
     public NgUserService ngUserService() {
         return Mockito.mock(NgUserService.class);
+    }
+
+    @Bean
+    public UserLoginSessionsService userLoginSessionsService() {
+        return Mockito.mock(UserLoginSessionsService.class);
     }
 
     @Bean
@@ -150,6 +157,11 @@ public class AngularAppTestConfig {
     @Bean
     public CurrencyService currencyService() {
         return Mockito.mock(CurrencyService.class);
+    }
+
+    @Bean
+    public RedisUserNotificationService redisUserNotificationService() {
+        return Mockito.mock(RedisUserNotificationService.class);
     }
 
     @Bean
