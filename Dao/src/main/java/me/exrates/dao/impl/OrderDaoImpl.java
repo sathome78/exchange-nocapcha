@@ -2169,9 +2169,7 @@ public class OrderDaoImpl implements OrderDao {
         } else if (operationType == OperationType.SELL) {
             sortDirection = "ASC";
         }
-        String sql = "SELECT E.id, E.user_id, E.currency_pair_id, E.operation_type_id, E.exrate, E.amount_base, E.amount_convert, E.commission_fixed_amount," +
-                " E.commission_id, E.date_creation, E.status_id, E.base_type " +
-                " FROM EXORDERS E" +
+        String sql = "SELECT E.* FROM EXORDERS E" +
                 " JOIN USER U ON U.id = E.user_id" +
                 " JOIN USER_ROLE_SETTINGS URS ON URS.user_role_id = U.roleid" +
                 " WHERE E.status_id = 2 AND E.operation_type_id = :typeId AND E.currency_pair_id = :pairId AND URS.order_acception_same_role_only = 0" +
