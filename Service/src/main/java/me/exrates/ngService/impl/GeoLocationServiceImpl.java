@@ -41,6 +41,9 @@ public class GeoLocationServiceImpl implements GeoLocationService {
     @Override
     public GeoLocation findById(String ip) {
         try {
+            ip = ip.startsWith("/")
+                    ? ip.substring(1).trim()
+                    : ip.trim();
             return loadingCache.get(ip);
         } catch (ExecutionException e) {
             log.warn("Failed to find geo location for ip: " + ip, e);
