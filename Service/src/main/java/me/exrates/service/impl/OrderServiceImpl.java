@@ -865,15 +865,15 @@ public class OrderServiceImpl implements OrderService {
         CurrencyPairWithRestriction activeCurrencyPair = currencyService.findCurrencyPairByIdWithRestrictions(inputOrder.getCurrencyPairId());
         User user = userService.findByEmail(userEmail);
 
-        if (activeCurrencyPair.hasTradeRestriction()) {
-            if (activeCurrencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.getVerificationRequired()) {
-                if (Objects.isNull(user.getCountry())) {
-                    throw new NeedVerificationException("Sorry, you must pass verification to trade this pair.");
-                } else if (user.getCountry().equalsIgnoreCase(RestrictedCountrys.USA.name())) {
-                    throw new OrderCreationRestrictedException("Sorry, you are not allowed to trade this pair");
-                }
-            }
-        }
+//        if (activeCurrencyPair.hasTradeRestriction()) {
+//            if (activeCurrencyPair.getTradeRestriction().contains(CurrencyPairRestrictionsEnum.ESCAPE_USA) && user.getVerificationRequired()) {
+//                if (Objects.isNull(user.getCountry())) {
+//                    throw new NeedVerificationException("Sorry, you must pass verification to trade this pair.");
+//                } else if (user.getCountry().equalsIgnoreCase(RestrictedCountrys.USA.name())) {
+//                    throw new OrderCreationRestrictedException("Sorry, you are not allowed to trade this pair");
+//                }
+//            }
+//        }
 
         if (operationType == OperationType.SELL) {
             spendCurrency = activeCurrencyPair.getCurrency1();

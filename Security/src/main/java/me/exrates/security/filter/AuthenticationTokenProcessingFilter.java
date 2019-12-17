@@ -74,7 +74,7 @@ public class AuthenticationTokenProcessingFilter extends AbstractAuthenticationP
         String token = request.getHeader(HEADER_SECURITY_TOKEN);
 
         UserDetails userDetails = authTokenService.getUserByToken(token);
-        CompletableFuture.runAsync(() -> userService.updateUserTradeRestrictions(request, userDetails));
+//        CompletableFuture.runAsync(() -> userService.updateUserTradeRestrictions(request, userDetails));
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails.getUsername(), null, userDetails.getAuthorities());
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         return authentication;
