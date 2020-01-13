@@ -183,21 +183,22 @@ public class NgUserController {
     public ResponseEntity register(@RequestBody @Valid UserEmailDto userEmailDto,
                                    HttpServletRequest request,
                                    BindingResult result) {
-        if (result.hasErrors()) {
-            String message = String.join(";", result.getAllErrors().toString());
-            logger.warn("Validation failed: " + message);
-            throw new NgResponseException("VALIDATION_ERROR", message);
-        }
-
-        boolean registered = ngUserService.registerUser(userEmailDto, request);
-        String ipAddress = IpUtils.getIpForDbLog(request);
-        if (registered) {
-            ipBlockingService.successfulProcessing(ipAddress, IpTypesOfChecking.REGISTER);
-            return ResponseEntity.ok().build();
-        }
-        if (ipAddress == null) ipAddress = request.getRemoteAddr();
-        ipBlockingService.failureProcessing(ipAddress, IpTypesOfChecking.REGISTER);
-        throw new NgResponseException(ErrorApiTitles.FAILED_TO_REGISTER_USER, "Registration failed from ip: " + ipAddress);
+//        if (result.hasErrors()) {
+//            String message = String.join(";", result.getAllErrors().toString());
+//            logger.warn("Validation failed: " + message);
+//            throw new NgResponseException("VALIDATION_ERROR", message);
+//        }
+//
+//        boolean registered = ngUserService.registerUser(userEmailDto, request);
+//        String ipAddress = IpUtils.getIpForDbLog(request);
+//        if (registered) {
+//            ipBlockingService.successfulProcessing(ipAddress, IpTypesOfChecking.REGISTER);
+//            return ResponseEntity.ok().build();
+//        }
+//        if (ipAddress == null) ipAddress = request.getRemoteAddr();
+//        ipBlockingService.failureProcessing(ipAddress, IpTypesOfChecking.REGISTER);
+//        throw new NgResponseException(ErrorApiTitles.FAILED_TO_REGISTER_USER, "Registration failed from ip: " + ipAddress);
+        throw new NgResponseException(ErrorApiTitles.FAILED_TO_REGISTER_USER, "User registration is disabled");
     }
 
     @PostMapping("/password/create")
