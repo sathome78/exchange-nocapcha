@@ -7,8 +7,6 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.imagination.comparator.Comparator;
-import org.joda.time.DateTime;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import java.io.File;
@@ -22,13 +20,11 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TimeZone;
-import java.util.regex.Pattern;
 
 @Log4j2
 public class DataComparisonTest extends AbstractDatabaseContextTest {
@@ -133,16 +129,6 @@ public class DataComparisonTest extends AbstractDatabaseContextTest {
 
     private String getTestIdentifier(String path) {
         return new File(path).getParentFile().getParentFile().getName();
-    }
-
-    private static Comparator createTreeComparator() {
-        Map<String, Pattern> aliases = new HashMap<String, Pattern>() {
-            {
-                put("current_date", Pattern.compile(DateTime.now().toString("yyyy-MM-dd")));
-                put("any", Pattern.compile(".*")); // TODO fix time where near now +/- 3-5 minutes
-            }
-        };
-        return Comparator.java().strict(aliases);
     }
 
     private String prettify(String actual) {
