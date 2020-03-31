@@ -103,30 +103,30 @@
                                 <a href="/forgotPassword" class="darkblue forgot-password forgot-password--largeform"><loc:message
                                         code="dashboard.forgotPassword"/></a>
                             </div>
-                            <c:if test="${captchaType==\"RECAPTCHA\"}">
-                                <%--CAPTCHA GOOGLE--%>
-                                <div class="col-md-10 login__captcha-wrapper">
-                                    <div id="cpch-field" class="login__captcha--recaptcha g-recaptcha"
-                                         data-sitekey=${captchaProperties.get("captcha.key")}></div>
-                                        <%--<p class='cpch-error-message' style="color:red">${cpch}</p>--%>
-                                    <br/>
-                                </div>
-                                <div class="col-md-10 input-block-wrapper__error-wrapper">
-                                    <p class='cpch-error-message' style="color:red">${cpch}</p>
-                                </div>
-                            </c:if>
-                            <c:if test="${captchaType==\"BOTDETECT\"}">
-                                <%--CAPTCHA BotDetect--%>
-                                <div id="cpch-field" class="col-md-10 login__captcha--botdetect passed">
-                                    <botDetect:captcha id="loginFormRegCaptcha" userInputID="captchaCode"/>
-                                    <input name="captchaCode" type="text" id="captchaCode"/>
-                                    <input type="hidden" name="captchaId" value="loginFormRegCaptcha"/>
-                                </div>
-                                <div class="col-md-10 input-block-wrapper__error-wrapper">
-                                    <p class='cpch-error-message' style="color:red">${cpch}</p>
-                                </div>
-                            </c:if>
-                            <input type="hidden" name="captchaType" value="${captchaType}"/>
+<%--                            <c:if test="${captchaType==\"RECAPTCHA\"}">--%>
+<%--                                &lt;%&ndash;CAPTCHA GOOGLE&ndash;%&gt;--%>
+<%--                                <div class="col-md-10 login__captcha-wrapper">--%>
+<%--                                    <div id="cpch-field" class="login__captcha--recaptcha g-recaptcha"--%>
+<%--                                         data-sitekey=${captchaProperties.get("captcha.key")}></div>--%>
+<%--                                        &lt;%&ndash;<p class='cpch-error-message' style="color:red">${cpch}</p>&ndash;%&gt;--%>
+<%--                                    <br/>--%>
+<%--                                </div>--%>
+<%--                                <div class="col-md-10 input-block-wrapper__error-wrapper">--%>
+<%--                                    <p class='cpch-error-message' style="color:red">${cpch}</p>--%>
+<%--                                </div>--%>
+<%--                            </c:if>--%>
+<%--                            <c:if test="${captchaType==\"BOTDETECT\"}">--%>
+<%--                                &lt;%&ndash;CAPTCHA BotDetect&ndash;%&gt;--%>
+<%--                                <div id="cpch-field" class="col-md-10 login__captcha--botdetect passed">--%>
+<%--                                    <botDetect:captcha id="loginFormRegCaptcha" userInputID="captchaCode"/>--%>
+<%--                                    <input name="captchaCode" type="text" id="captchaCode"/>--%>
+<%--                                    <input type="hidden" name="captchaId" value="loginFormRegCaptcha"/>--%>
+<%--                                </div>--%>
+<%--                                <div class="col-md-10 input-block-wrapper__error-wrapper">--%>
+<%--                                    <p class='cpch-error-message' style="color:red">${cpch}</p>--%>
+<%--                                </div>--%>
+<%--                            </c:if>--%>
+<%--                            <input type="hidden" name="captchaType" value="${captchaType}"/>--%>
                             <%----%>
                             <div class="col-md-10 login__button-wrapper">
                                 <button id="login_button" class="login__button" type="submit"><loc:message
