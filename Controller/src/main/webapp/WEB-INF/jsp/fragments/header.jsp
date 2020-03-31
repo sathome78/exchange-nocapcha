@@ -107,7 +107,7 @@
 <%--                     data-sitekey="${captchaProperties.get("captcha.key")}"></div>--%>
 
                 <div class="field field--btn__new">
-                    <input id="login_submit" value="Authorise me">
+                    <input id="login_submit" class="btn__new btn__new--form" value="Authorise me">
                 </div>
             </form>
         </div>
