@@ -103,8 +103,8 @@
                     <input id="auth_pass" class="field__input / js-pwd" type="password" name="password" placeholder="Password" required>
                 </div>
                 <br>
-                <div class="g-recaptcha" data-callback="capResultChecLogin" data-expired-callback="capExpiredLogin"
-                     data-sitekey="${captchaProperties.get("captcha.key")}"></div>
+<%--                <div class="g-recaptcha" data-callback="capResultChecLogin" data-expired-callback="capExpiredLogin"--%>
+<%--                     data-sitekey="${captchaProperties.get("captcha.key")}"></div>--%>
 
                 <div class="field field--btn__new">
                     <input id="login_submit" class="btn__new btn__new--form" value="Authorise me" readonly disabled>
