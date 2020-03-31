@@ -107,7 +107,7 @@
 <%--                     data-sitekey="${captchaProperties.get("captcha.key")}"></div>--%>
 
                 <div class="field field--btn__new">
-                    <input id="login_submit" class="btn__new btn__new--form" value="Authorise me" readonly disabled>
+                    <input id="login_submit" class="btn__new btn__new--form" value="Authorise me">
                 </div>
             </form>
         </div>
@@ -141,9 +141,9 @@
                     <div id="email_pwd_restore_notExist" class='field__error' style="display:none">
                         <loc:message code="login.notExists.email"/>
                     </div>
-                    <div id="ip_banned_incorrect_attempts_exceeded_recover" class='field__error' style="display:none">
-                        <loc:message code="ip.ban.message.incorrectAttemptsExceeded"/>
-                    </div>
+<%--                    <div id="ip_banned_incorrect_attempts_exceeded_recover" class='field__error' style="display:none">--%>
+<%--                        <loc:message code="ip.ban.message.incorrectAttemptsExceeded"/>--%>
+<%--                    </div>--%>
                 </div>
                 <br>
 <%--                <div class="g-recaptcha" data-callback="capResultChecRestore" data-expired-callback="capExpiredRestore"--%>
