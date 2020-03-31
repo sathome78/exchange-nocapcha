@@ -10,7 +10,7 @@
 <script src="<c:url value="/client/js/jquery.noty.packaged.min.js"/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/login.js'/>"></script>
-<script src="https://www.google.com/recaptcha/api.js" type="text/javascript"></script>
+<%--<script src="https://www.google.com/recaptcha/api.js" type="text/javascript"></script>--%>
 <link href="https://fonts.googleapis.com/css?family=Montserrat:500,700" rel="stylesheet">
 
 <c:set var="path" value="${fn:replace(pageContext.request.requestURI, '/WEB-INF/jsp', '')}"/>
@@ -146,9 +146,9 @@
                     </div>
                 </div>
                 <br>
-                <div class="g-recaptcha" data-callback="capResultChecRestore" data-expired-callback="capExpiredRestore"
-                     data-sitekey="${captchaProperties.get("captcha.key")}"></div>
-                <div class="field field--btn__new">
+<%--                <div class="g-recaptcha" data-callback="capResultChecRestore" data-expired-callback="capExpiredRestore"--%>
+<%--                     data-sitekey="${captchaProperties.get("captcha.key")}"></div>--%>
+<%--                <div class="field field--btn__new">--%>
                     <input id="pwd_restore_submit" class="btn__new btn__new--form" type="submit" value="Reset password" disabled>
                 </div>
             </form>
