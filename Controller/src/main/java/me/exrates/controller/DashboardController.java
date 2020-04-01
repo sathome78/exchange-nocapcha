@@ -154,26 +154,21 @@ public class DashboardController {
 
         String recapchaResponse = request.getParameter("g-recaptcha-response");
 
-        if (verifyReCaptchaSec.verify(recapchaResponse)) {
-            registerFormValidation.validateEmail(user, result, localeResolver.resolveLocale(request));
-            if (result.hasErrors()) {
-                //TODO
-                throw new RuntimeException(result.toString());
-            }
-            String email = user.getEmail();
-            user = userService.findByEmail(email);
-            UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
-            updateUserDto.setEmail(email);
-            userService.update(updateUserDto, true, localeResolver.resolveLocale(request));
-
-            Map<String, Object> body = new HashMap<>();
-            body.put("result", messageSource.getMessage("admin.changePasswordSendEmail", null, localeResolver.resolveLocale(request)));
-            body.put("email", email);
-            return ResponseEntity.ok(body);
-        } else {
-            String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
-            throw new NotVerifiedCaptchaError(correctCapchaRequired);
+        registerFormValidation.validateEmail(user, result, localeResolver.resolveLocale(request));
+        if (result.hasErrors()) {
+            //TODO
+            throw new RuntimeException(result.toString());
         }
+        String email = user.getEmail();
+        user = userService.findByEmail(email);
+        UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
+        updateUserDto.setEmail(email);
+        userService.update(updateUserDto, true, localeResolver.resolveLocale(request));
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("result", messageSource.getMessage("admin.changePasswordSendEmail", null, localeResolver.resolveLocale(request)));
+        body.put("email", email);
+        return ResponseEntity.ok(body);
     }
 
   @RequestMapping(value = "/dashboard/updatePasswordbytoken", method = RequestMethod.POST)

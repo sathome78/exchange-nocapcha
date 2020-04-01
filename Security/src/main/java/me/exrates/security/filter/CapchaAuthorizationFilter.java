@@ -48,9 +48,6 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
     @Autowired
     private IpBlockingService ipBlockingService;
 
-    @Autowired
-    private VerifyReCaptchaSec verifyReCaptchaSec;
-
     private @Value("${session.checkPinParam}") String checkPinParam;
     private @Value("${session.pinParam}") String pinParam;
     private @Value("${session.passwordParam}") String passwordParam;
@@ -96,10 +93,6 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
 
             String recapchaResponse = request.getParameter("g-recaptcha-response");
 
-            if (!verifyReCaptchaSec.verify(recapchaResponse)) {
-                String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
-                throw new NotVerifiedCaptchaError(correctCapchaRequired);
-            }
         }
         if(userService.findByEmail(request.getParameter("username")).getUserStatus()==UserStatus.REGISTERED){
             throw new UnconfirmedUserException(userService.findByEmail(request.getParameter("username")).getEmail());
