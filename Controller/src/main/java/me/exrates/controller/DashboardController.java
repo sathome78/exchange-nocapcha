@@ -169,7 +169,6 @@ public class DashboardController {
         body.put("result", messageSource.getMessage("admin.changePasswordSendEmail", null, localeResolver.resolveLocale(request)));
         body.put("email", email);
         return ResponseEntity.ok(body);
-        }
     }
 
   @RequestMapping(value = "/dashboard/updatePasswordbytoken", method = RequestMethod.POST)
